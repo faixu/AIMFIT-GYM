@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import SocialProof from "./components/SocialProof";
@@ -32,6 +33,7 @@ export default function App() {
       <Footer />
       <WhatsAppButton />
       <StickyJoinNow />
+      <Analytics />
     </div>
   );
 }
