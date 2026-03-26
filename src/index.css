@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-brand-accent: #ff0000; /* Red accent as requested */
+  --color-brand-dark: #0a0a0a;
+  --color-brand-gray: #1a1a1a;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-dark text-white font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold uppercase tracking-tight;
+  }
+}
+
+.glass-card {
+  @apply bg-white/5 backdrop-blur-lg border border-white/10;
+}
+
+.btn-primary {
+  @apply bg-brand-accent hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 uppercase tracking-wider text-sm;
+}
+
+.btn-secondary {
+  @apply bg-transparent border-2 border-white hover:bg-white hover:text-brand-dark text-white font-bold py-3 px-8 rounded-full transition-all duration-300 uppercase tracking-wider text-sm;
+}
