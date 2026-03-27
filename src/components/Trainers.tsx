@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { Instagram, Twitter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
-const trainers = [
+const staticTrainers = [
   {
     name: "Vikram Singh",
     specialty: "Bodybuilding Expert",
@@ -23,6 +26,24 @@ const trainers = [
 ];
 
 export default function Trainers() {
+  const [trainers, setTrainers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'trainers'), (snapshot) => {
+      if (!snapshot.empty) {
+        setTrainers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } else {
+        setTrainers(staticTrainers);
+      }
+    }, (error) => {
+      console.error('Error fetching trainers:', error);
+      try {
+        handleFirestoreError(error, OperationType.GET, 'trainers');
+      } catch (e) {}
+      setTrainers(staticTrainers);
+    });
+    return () => unsubscribe();
+  }, []);
   return (
     <section id="trainers" className="py-24 bg-brand-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

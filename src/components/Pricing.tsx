@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
-const plans = [
+const staticPlans = [
   {
     name: "Basic Plan",
     price: "2000",
@@ -48,6 +51,24 @@ const plans = [
 ];
 
 export default function Pricing() {
+  const [plans, setPlans] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'pricing'), (snapshot) => {
+      if (!snapshot.empty) {
+        setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } else {
+        setPlans(staticPlans);
+      }
+    }, (error) => {
+      console.error('Error fetching pricing:', error);
+      try {
+        handleFirestoreError(error, OperationType.GET, 'pricing');
+      } catch (e) {}
+      setPlans(staticPlans);
+    });
+    return () => unsubscribe();
+  }, []);
   return (
     <section id="pricing" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

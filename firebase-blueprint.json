@@ -1,0 +1,22 @@
+{
+  "entities": {
+    "ContentSection": {
+      "title": "Content Section",
+      "description": "A section of the website content",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the section" },
+        "subtitle": { "type": "string", "description": "The subtitle or description" },
+        "imageUrl": { "type": "string", "description": "Optional image URL for the section" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["title", "subtitle"]
+    }
+  },
+  "firestore": {
+    "/siteContent/{sectionId}": {
+      "schema": "ContentSection",
+      "description": "Dynamic content for various website sections"
+    }
+  }
+}

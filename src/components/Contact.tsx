@@ -1,13 +1,40 @@
 import { motion } from "motion/react";
 import { Phone, Mail, MapPin, Clock, Send } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Contact() {
+  const [settings, setSettings] = useState({
+    contactPhone: '+91 98765 43210',
+    contactEmail: 'hello@aimfitgym.com',
+    contactAddress: '123 Fitness Lane, Sector 45, Gurgaon, India'
+  });
+
   const [formState, setFormState] = useState({
     name: "",
     phone: "",
     goal: "Weight Loss"
   });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          contactPhone: data.contactPhone || '+91 98765 43210',
+          contactEmail: data.contactEmail || 'hello@aimfitgym.com',
+          contactAddress: data.contactAddress || '123 Fitness Lane, Sector 45, Gurgaon, India'
+        });
+      }
+    }, (error) => {
+      console.error('Error fetching contact info:', error);
+      try {
+        handleFirestoreError(error, OperationType.GET, 'settings/site');
+      } catch (e) {}
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -36,7 +63,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500 font-bold mb-1">Phone</p>
-                  <p className="text-xl font-bold">+91 98765 43210</p>
+                  <p className="text-xl font-bold">{settings.contactPhone}</p>
                 </div>
               </div>
               
@@ -46,7 +73,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500 font-bold mb-1">Email</p>
-                  <p className="text-xl font-bold">hello@aimfitgym.com</p>
+                  <p className="text-xl font-bold">{settings.contactEmail}</p>
                 </div>
               </div>
               
@@ -56,7 +83,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500 font-bold mb-1">Location</p>
-                  <p className="text-xl font-bold">123 Fitness Lane, Sector 45, Gurgaon, India</p>
+                  <p className="text-xl font-bold">{settings.contactAddress}</p>
                 </div>
               </div>
               

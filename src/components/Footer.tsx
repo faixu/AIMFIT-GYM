@@ -1,6 +1,28 @@
+import { useState, useEffect } from "react";
 import { Instagram, Facebook, Youtube, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Footer() {
+  const [settings, setSettings] = useState({
+    instagramUrl: 'https://instagram.com/aimfitgym',
+    facebookUrl: 'https://facebook.com/aimfitgym'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          instagramUrl: data.instagramUrl || 'https://instagram.com/aimfitgym',
+          facebookUrl: data.facebookUrl || 'https://facebook.com/aimfitgym'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <footer className="bg-brand-dark border-t border-white/10 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,10 +37,10 @@ export default function Footer() {
               The ultimate fitness destination in India. We combine elite training with an affordable approach to help you achieve real results.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-colors">
+              <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-colors">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-colors">
+              <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-colors">
                 <Facebook size={20} />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-colors">

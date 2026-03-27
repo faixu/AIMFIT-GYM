@@ -1,10 +1,24 @@
+import { useState, useEffect } from "react";
 import { MessageCircle } from "lucide-react";
 import { motion } from "motion/react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function WhatsAppButton() {
+  const [whatsappNumber, setWhatsappNumber] = useState('919876543210');
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        setWhatsappNumber(doc.data().whatsappNumber || '919876543210');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <motion.a
-      href="https://wa.me/919876543210"
+      href={`https://wa.me/${whatsappNumber}`}
       target="_blank"
       rel="noopener noreferrer"
       initial={{ scale: 0, opacity: 0 }}

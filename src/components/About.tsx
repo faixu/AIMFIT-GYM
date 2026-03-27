@@ -1,7 +1,32 @@
 import { motion } from "motion/react";
 import { CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function About() {
+  const [settings, setSettings] = useState({
+    aboutTitle: 'Built for Discipline, Driven by Results',
+    aboutSubtitle: 'Our Story',
+    aboutDescription: 'At AimFit Gym, we believe fitness is not just about looking good; it\'s about building a stronger, more disciplined version of yourself. Our mission is to provide world-class training facilities that are affordable for everyone.',
+    aboutYears: '10+'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          aboutTitle: data.aboutTitle || 'Built for Discipline, Driven by Results',
+          aboutSubtitle: data.aboutSubtitle || 'Our Story',
+          aboutDescription: data.aboutDescription || 'At AimFit Gym, we believe fitness is not just about looking good; it\'s about building a stronger, more disciplined version of yourself. Our mission is to provide world-class training facilities that are affordable for everyone.',
+          aboutYears: data.aboutYears || '10+'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section id="about" className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,7 +46,7 @@ export default function About() {
               />
             </div>
             <div className="absolute -bottom-6 -right-6 glass-card p-6 rounded-xl hidden md:block">
-              <p className="text-4xl font-black text-brand-accent">10+</p>
+              <p className="text-4xl font-black text-brand-accent">{settings.aboutYears}</p>
               <p className="text-xs uppercase font-bold">Years of Excellence</p>
             </div>
           </motion.div>
@@ -31,10 +56,17 @@ export default function About() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-brand-accent font-bold uppercase tracking-widest text-sm mb-4 block">Our Story</span>
-            <h2 className="text-4xl md:text-5xl mb-8 leading-tight">Built for Discipline, <span className="text-brand-accent">Driven by Results</span></h2>
+            <span className="text-brand-accent font-bold uppercase tracking-widest text-sm mb-4 block">{settings.aboutSubtitle}</span>
+            <h2 className="text-4xl md:text-5xl mb-8 leading-tight">
+              {settings.aboutTitle.split(',').map((part, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="text-brand-accent">, {part}</span>}
+                  {i === 0 && part}
+                </span>
+              ))}
+            </h2>
             <p className="text-gray-400 mb-8 text-lg leading-relaxed">
-              At AimFit Gym, we believe fitness is not just about looking good; it's about building a stronger, more disciplined version of yourself. Our mission is to provide world-class training facilities that are affordable for everyone.
+              {settings.aboutDescription}
             </p>
             
             <ul className="space-y-4 mb-10">

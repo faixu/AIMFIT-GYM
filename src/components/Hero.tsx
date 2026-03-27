@@ -1,7 +1,28 @@
+import { useState, useEffect } from 'react';
 import { motion } from "motion/react";
 import { ChevronRight, Play } from "lucide-react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Hero() {
+  const [settings, setSettings] = useState({
+    heroTitle: 'TRANSFORM YOUR BODY AT AIMFIT',
+    heroSubtitle: 'Achieve your dream physique with professional guidance, elite equipment, and a community that pushes you.'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          heroTitle: data.heroTitle || 'TRANSFORM YOUR BODY AT AIMFIT',
+          heroSubtitle: data.heroSubtitle || 'Achieve your dream physique with professional guidance, elite equipment, and a community that pushes you.'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Background Image with Overlay */}
@@ -26,11 +47,11 @@ export default function Hero() {
             <span className="inline-block py-1 px-3 bg-brand-accent text-white text-xs font-bold uppercase tracking-widest mb-6">
               Best Gym in India
             </span>
-            <h1 className="text-6xl md:text-8xl font-black leading-[0.9] mb-6">
-              TRANSFORM YOUR <span className="text-brand-accent">BODY</span> AT AIMFIT
+            <h1 className="text-6xl md:text-8xl font-black leading-[0.9] mb-6 uppercase">
+              {settings.heroTitle}
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-xl font-medium">
-              Achieve your dream physique with professional guidance, elite equipment, and a community that pushes you.
+              {settings.heroSubtitle}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">

@@ -1,5 +1,8 @@
 import { motion } from "motion/react";
 import { Dumbbell, Zap, Users, Target, HeartPulse } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const services = [
   {
@@ -35,12 +38,36 @@ const services = [
 ];
 
 export default function Services() {
+  const [settings, setSettings] = useState({
+    servicesTitle: 'Our Expertise',
+    servicesSubtitle: 'We offer specialized programs tailored to your specific needs, whether you\'re a pro athlete or a complete beginner.'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          servicesTitle: data.servicesTitle || 'Our Expertise',
+          servicesSubtitle: data.servicesSubtitle || 'We offer specialized programs tailored to your specific needs, whether you\'re a pro athlete or a complete beginner.'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section id="services" className="py-24 bg-brand-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl mb-4">Our <span className="text-brand-accent">Expertise</span></h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">We offer specialized programs tailored to your specific needs, whether you're a pro athlete or a complete beginner.</p>
+          <h2 className="text-4xl md:text-5xl mb-4">
+            {settings.servicesTitle.split(' ').map((word, i, arr) => (
+              <span key={i}>
+                {i === arr.length - 1 ? <span className="text-brand-accent">{word}</span> : word + ' '}
+              </span>
+            ))}
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">{settings.servicesSubtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

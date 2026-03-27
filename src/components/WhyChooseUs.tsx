@@ -1,5 +1,8 @@
 import { motion } from "motion/react";
 import { ShieldCheck, Clock, Award, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const features = [
   {
@@ -25,14 +28,38 @@ const features = [
 ];
 
 export default function WhyChooseUs() {
+  const [settings, setSettings] = useState({
+    whyChooseTitle: 'Why AimFit Gym?',
+    whyChooseSubtitle: 'We provide an environment that fosters growth, discipline, and results. Here\'s what sets us apart from the rest.'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          whyChooseTitle: data.whyChooseTitle || 'Why AimFit Gym?',
+          whyChooseSubtitle: data.whyChooseSubtitle || 'We provide an environment that fosters growth, discipline, and results. Here\'s what sets us apart from the rest.'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section className="py-24 bg-brand-gray relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <h2 className="text-4xl md:text-5xl mb-8">Why <span className="text-brand-accent">AimFit</span> Gym?</h2>
+            <h2 className="text-4xl md:text-5xl mb-8">
+              {settings.whyChooseTitle.split(' ').map((word, i, arr) => (
+                <span key={i}>
+                  {word === 'AimFit' ? <span className="text-brand-accent">{word} </span> : word + ' '}
+                </span>
+              ))}
+            </h2>
             <p className="text-gray-400 mb-12 text-lg">
-              We provide an environment that fosters growth, discipline, and results. Here's what sets us apart from the rest.
+              {settings.whyChooseSubtitle}
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">

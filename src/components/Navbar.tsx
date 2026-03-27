@@ -1,20 +1,43 @@
 import { motion } from "motion/react";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const clickCount = useRef(0);
+  const lastClickTime = useRef(0);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastClickTime.current < 500) {
+      clickCount.current += 1;
+    } else {
+      clickCount.current = 1;
+    }
+    lastClickTime.current = now;
+
+    if (clickCount.current === 5) {
+      navigate("/admin");
+      clickCount.current = 0;
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-dark/80 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
-            <a href="#" className="flex items-center gap-2">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center gap-2 focus:outline-none cursor-default"
+            >
               <span className="text-2xl font-display font-black tracking-tighter italic">
                 AIM<span className="text-brand-accent">FIT</span>
               </span>
-            </a>
+            </button>
           </div>
           
           <div className="hidden md:block">

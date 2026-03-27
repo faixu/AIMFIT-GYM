@@ -1,5 +1,5 @@
 {
-  "name": "AimFit Gym",
-  "description": "High-converting fitness website for AimFit Gym India - Built for Results.",
+  "name": "Dynamic Content CMS",
+  "description": "A website with an invisible admin portal to dynamically manage content via Firestore.",
   "requestFramePermissions": []
 }
