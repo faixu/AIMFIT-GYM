@@ -15,6 +15,8 @@ import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
 import StickyJoinNow from "./components/StickyJoinNow";
 import AdminPanel from "./components/Admin/AdminPanel";
+import Shop from "./components/Shop";
+import { CartProvider } from "./context/CartContext";
 
 function MainSite() {
   return (
@@ -41,12 +43,15 @@ function MainSite() {
 
 export default function App() {
   return (
-    <Router>
-      <Toaster position="top-center" richColors theme="dark" />
-      <Routes>
-        <Route path="/" element={<MainSite />} />
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
-    </Router>
+    <CartProvider>
+      <Router>
+        <Toaster position="top-center" richColors theme="dark" />
+        <Routes>
+          <Route path="/" element={<MainSite />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </Router>
+    </CartProvider>
   );
 }

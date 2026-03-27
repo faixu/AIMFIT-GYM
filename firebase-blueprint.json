@@ -11,12 +11,52 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
       },
       "required": ["title", "subtitle"]
+    },
+    "Supplement": {
+      "title": "Supplement",
+      "description": "A supplement product for sale",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the supplement" },
+        "price": { "type": "number", "description": "The price of the supplement" },
+        "description": { "type": "string", "description": "A description of the supplement" },
+        "image": { "type": "string", "description": "Base64 or URL of the supplement image" },
+        "category": { "type": "string", "description": "Category (e.g., Protein, Pre-workout)" },
+        "inStock": { "type": "boolean", "description": "Whether the supplement is in stock" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "price", "description", "image"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global website settings",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactAddress": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "instagramUrl": { "type": "string" },
+        "facebookUrl": { "type": "string" },
+        "upiQrCode": { "type": "string", "description": "Base64 string of the UPI QR code" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "firestore": {
     "/siteContent/{sectionId}": {
       "schema": "ContentSection",
       "description": "Dynamic content for various website sections"
+    },
+    "/supplements/{supplementId}": {
+      "schema": "Supplement",
+      "description": "Supplements available for purchase"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global website settings"
     }
   }
 }

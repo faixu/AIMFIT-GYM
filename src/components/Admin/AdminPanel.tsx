@@ -5,8 +5,9 @@ import AdminLogin from './AdminLogin';
 import AdminGallery from './AdminGallery';
 import AdminTrainers from './AdminTrainers';
 import AdminPricing from './AdminPricing';
+import AdminShop from './AdminShop';
 import AdminSettings from './AdminSettings';
-import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -28,6 +29,7 @@ export default function AdminPanel() {
   const tabs = [
     { id: 'gallery', label: 'Gallery', icon: ImageIcon },
     { id: 'trainers', label: 'Trainers', icon: Users },
+    { id: 'shop', label: 'Shop', icon: ShoppingBag },
     { id: 'pricing', label: 'Pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -91,6 +93,7 @@ export default function AdminPanel() {
         <div className="max-w-6xl">
           {activeTab === 'gallery' && <AdminGallery />}
           {activeTab === 'trainers' && <AdminTrainers />}
+          {activeTab === 'shop' && <AdminShop />}
           {activeTab === 'pricing' && <AdminPricing />}
           {activeTab === 'settings' && <AdminSettings />}
         </div>

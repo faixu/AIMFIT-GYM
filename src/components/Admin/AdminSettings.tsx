@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare, QrCode, Upload, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -14,10 +14,12 @@ export default function AdminSettings() {
     contactAddress: '123 Fitness Street, Gym Nagar, Mumbai, Maharashtra 400001',
     whatsappNumber: '919876543210',
     instagramUrl: 'https://instagram.com/aimfitgym',
-    facebookUrl: 'https://facebook.com/aimfitgym'
+    facebookUrl: 'https://facebook.com/aimfitgym',
+    upiQrCode: ''
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
@@ -29,6 +31,21 @@ export default function AdminSettings() {
     });
     return () => unsubscribe();
   }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        toast.error('Image size must be less than 1MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettings({ ...settings, upiQrCode: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +186,58 @@ export default function AdminSettings() {
                   onChange={e => setSettings({...settings, instagramUrl: e.target.value})}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
                 />
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px bg-white/5"></div>
+
+          {/* Payment Settings */}
+          <div className="space-y-6">
+            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-brand-accent flex items-center gap-2">
+              <QrCode size={16} />
+              Payment Settings
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">UPI QR Code Scanner</label>
+                <p className="text-sm text-gray-400 mb-4">Upload your UPI QR code image. This will be shown to customers during checkout.</p>
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-secondary w-full py-4 flex items-center justify-center gap-3"
+                >
+                  <Upload size={18} />
+                  {settings.upiQrCode ? 'Change QR Code' : 'Upload QR Code'}
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+              <div className="flex justify-center">
+                {settings.upiQrCode ? (
+                  <div className="relative group">
+                    <div className="w-48 h-48 bg-white p-4 rounded-2xl shadow-2xl">
+                      <img src={settings.upiQrCode} alt="UPI QR Code" className="w-full h-full object-contain" />
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setSettings({...settings, upiQrCode: ''})}
+                      className="absolute -top-2 -right-2 w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-48 h-48 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-gray-600">
+                    <QrCode size={48} />
+                    <span className="text-[10px] uppercase font-bold mt-2">No QR Code</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
