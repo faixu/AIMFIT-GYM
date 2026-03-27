@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn, ArrowRight, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { db, auth } from '../lib/firebase';
 import { doc, onSnapshot, collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -9,11 +9,12 @@ import { toast } from 'sonner';
 
 export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<'cart' | 'checkout' | 'success' | 'auth-prompt'>('cart');
+  const [step, setStep] = useState<'cart' | 'payment-method' | 'checkout-upi' | 'checkout-cod' | 'success' | 'auth-prompt'>('cart');
   const [upiQrCode, setUpiQrCode] = useState<string | null>(null);
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
@@ -32,15 +33,15 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       return;
     }
     
-    setStep('checkout');
+    setStep('payment-method');
   };
 
   const handleAuthSuccess = () => {
     setIsAuthDrawerOpen(false);
-    setStep('checkout');
+    setStep('payment-method');
   };
 
-  const handlePaymentComplete = async () => {
+  const handlePaymentComplete = async (method: 'upi' | 'cod') => {
     if (!auth.currentUser) return;
     
     setIsProcessing(true);
@@ -58,7 +59,8 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           image: item.image
         })),
         totalAmount: totalPrice,
-        status: 'paid',
+        paymentMethod: method,
+        status: method === 'upi' ? 'paid' : 'pending', // COD starts as pending
         createdAt: serverTimestamp()
       });
 
@@ -209,10 +211,65 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </div>
               )}
 
-              {step === 'checkout' && (
+              {step === 'payment-method' && (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-8 p-4">
+                  <div className="w-24 h-24 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent">
+                    <CreditCard size={48} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Select Payment</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Choose how you'd like to pay for your order.
+                    </p>
+                  </div>
+                  
+                  <div className="w-full space-y-4">
+                    <button 
+                      onClick={() => setStep('checkout-upi')}
+                      className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:border-brand-accent transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-accent/10 rounded-2xl flex items-center justify-center text-brand-accent">
+                          <QrCode size={24} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold uppercase tracking-tight">Online Payment</p>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">UPI / Scanner</p>
+                        </div>
+                      </div>
+                      <ArrowRight size={20} className="text-gray-600 group-hover:text-brand-accent transition-colors" />
+                    </button>
+
+                    <button 
+                      onClick={() => setStep('checkout-cod')}
+                      className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:border-brand-accent transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-gray-400 group-hover:text-brand-accent">
+                          <ShoppingBag size={24} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold uppercase tracking-tight">Cash on Delivery</p>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Pay at doorstep</p>
+                        </div>
+                      </div>
+                      <ArrowRight size={20} className="text-gray-600 group-hover:text-brand-accent transition-colors" />
+                    </button>
+
+                    <button 
+                      onClick={() => setStep('cart')}
+                      className="block w-full text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] hover:text-brand-accent transition-colors pt-4"
+                    >
+                      Back to Cart
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 'checkout-upi' && (
                 <div className="space-y-8 text-center">
                   <div className="space-y-2">
-                    <h3 className="text-2xl font-black uppercase tracking-tight">Scan & Pay</h3>
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Scan & Pay</h3>
                     <p className="text-sm text-gray-400">Scan the UPI QR code below to complete your payment of <span className="text-brand-accent font-black">₹{totalPrice}</span></p>
                   </div>
 
@@ -243,7 +300,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                       </p>
                     </div>
                     <button 
-                      onClick={handlePaymentComplete}
+                      onClick={() => handlePaymentComplete('upi')}
                       disabled={!upiQrCode || isProcessing}
                       className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 disabled:opacity-50 flex items-center justify-center gap-3"
                     >
@@ -257,10 +314,47 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                       )}
                     </button>
                     <button 
-                      onClick={() => setStep('cart')}
+                      onClick={() => setStep('payment-method')}
                       className="text-gray-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
                     >
-                      Back to Cart
+                      Change Payment Method
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 'checkout-cod' && (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-8 p-4">
+                  <div className="w-24 h-24 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent">
+                    <ShoppingBag size={48} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Confirm COD</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      You've selected Cash on Delivery. You will pay <span className="text-brand-accent font-black">₹{totalPrice}</span> when your order is delivered.
+                    </p>
+                  </div>
+                  
+                  <div className="w-full space-y-4">
+                    <button 
+                      onClick={() => handlePaymentComplete('cod')}
+                      disabled={isProcessing}
+                      className="btn-primary w-full py-5 flex items-center justify-center gap-3"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Confirming...
+                        </>
+                      ) : (
+                        'Confirm Order'
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => setStep('payment-method')}
+                      className="block w-full text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] hover:text-brand-accent transition-colors"
+                    >
+                      Change Payment Method
                     </button>
                   </div>
                 </div>

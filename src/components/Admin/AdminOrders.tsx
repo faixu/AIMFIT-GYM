@@ -94,11 +94,18 @@ export default function AdminOrders() {
                 <div className="flex items-center gap-6">
                   <div className="text-right">
                     <p className="text-brand-accent font-black text-xl">₹{order.totalAmount}</p>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                      order.status === 'paid' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                    }`}>
-                      {order.status}
-                    </span>
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                        order.paymentMethod === 'cod' ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'
+                      }`}>
+                        {order.paymentMethod || 'upi'}
+                      </span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                        order.status === 'paid' || order.status === 'completed' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
                   </div>
                   {expandedOrder === order.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
