@@ -1,21 +1,14 @@
 import { useState, useEffect } from 'react';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare, Users, CreditCard, ShieldCheck } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState({
     heroTitle: 'PUSH YOUR LIMITS. ACHIEVE YOUR GOALS.',
     heroSubtitle: 'The most results-driven gym in India. Professional trainers, state-of-the-art equipment, and a community that pushes you to be your best.',
-    aboutTitle: 'Built for Discipline, Driven by Results',
-    aboutSubtitle: 'Our Story',
-    aboutDescription: 'At AimFit Gym, we believe fitness is not just about looking good; it\'s about building a stronger, more disciplined version of yourself. Our mission is to provide world-class training facilities that are affordable for everyone.',
-    aboutYears: '10+',
-    servicesTitle: 'Our Services',
-    servicesSubtitle: 'Push Your Limits',
-    whyChooseTitle: 'Why AimFit Gym?',
-    whyChooseSubtitle: 'We provide an environment that fosters growth, discipline, and results. Here\'s what sets us apart from the rest.',
     contactPhone: '+91 98765 43210',
     contactEmail: 'info@aimfitgym.com',
     contactAddress: '123 Fitness Street, Gym Nagar, Mumbai, Maharashtra 400001',
@@ -32,7 +25,7 @@ export default function AdminSettings() {
         setSettings(prev => ({ ...prev, ...doc.data() }));
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'settings/site');
+      console.error('Error fetching settings:', error);
     });
     return () => unsubscribe();
   }, []);
@@ -45,7 +38,7 @@ export default function AdminSettings() {
         ...settings,
         updatedAt: serverTimestamp()
       });
-      alert('Settings saved successfully!');
+      toast.success('Settings saved successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'settings/site');
     } finally {
@@ -92,112 +85,6 @@ export default function AdminSettings() {
                   onChange={e => setSettings({...settings, heroSubtitle: e.target.value})}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all min-h-[100px]"
                   required
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="h-px bg-white/5"></div>
-
-          {/* About Section */}
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-brand-accent flex items-center gap-2">
-              <Users size={16} />
-              About Section
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">About Subtitle</label>
-                <input 
-                  type="text" 
-                  value={settings.aboutSubtitle}
-                  onChange={e => setSettings({...settings, aboutSubtitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Years of Excellence</label>
-                <input 
-                  type="text" 
-                  value={settings.aboutYears}
-                  onChange={e => setSettings({...settings, aboutYears: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">About Title</label>
-                <input 
-                  type="text" 
-                  value={settings.aboutTitle}
-                  onChange={e => setSettings({...settings, aboutTitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">About Description</label>
-                <textarea 
-                  value={settings.aboutDescription}
-                  onChange={e => setSettings({...settings, aboutDescription: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all min-h-[100px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="h-px bg-white/5"></div>
-
-          {/* Services Section */}
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-brand-accent flex items-center gap-2">
-              <CreditCard size={16} />
-              Services Section
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Services Title</label>
-                <input 
-                  type="text" 
-                  value={settings.servicesTitle}
-                  onChange={e => setSettings({...settings, servicesTitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Services Subtitle</label>
-                <input 
-                  type="text" 
-                  value={settings.servicesSubtitle}
-                  onChange={e => setSettings({...settings, servicesSubtitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="h-px bg-white/5"></div>
-
-          {/* Why Choose Us Section */}
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-brand-accent flex items-center gap-2">
-              <ShieldCheck size={16} />
-              Why Choose Us Section
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Section Title</label>
-                <input 
-                  type="text" 
-                  value={settings.whyChooseTitle}
-                  onChange={e => setSettings({...settings, whyChooseTitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Section Subtitle</label>
-                <textarea 
-                  value={settings.whyChooseSubtitle}
-                  onChange={e => setSettings({...settings, whyChooseSubtitle: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all min-h-[80px]"
                 />
               </div>
             </div>

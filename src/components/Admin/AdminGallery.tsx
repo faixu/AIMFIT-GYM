@@ -3,6 +3,7 @@ import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { Trash2, Plus, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import ConfirmationModal from './ConfirmationModal';
 
 export default function AdminGallery() {
@@ -27,7 +28,7 @@ export default function AdminGallery() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) { // 1MB limit for Firestore
-        alert('Image size must be less than 1MB');
+        toast.error('Image size must be less than 1MB');
         return;
       }
       const reader = new FileReader();
@@ -43,7 +44,7 @@ export default function AdminGallery() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newImage.image) {
-      alert('Please select an image');
+      toast.error('Please select an image');
       return;
     }
     setLoading(true);
@@ -55,6 +56,7 @@ export default function AdminGallery() {
       setNewImage({ title: '', category: 'Training', image: '' });
       setPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      toast.success('Image uploaded successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'gallery');
     } finally {

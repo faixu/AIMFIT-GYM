@@ -3,6 +3,7 @@ import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Trash2, Plus, User, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import ConfirmationModal from './ConfirmationModal';
 
 export default function AdminTrainers() {
@@ -24,7 +25,7 @@ export default function AdminTrainers() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) { // 1MB limit for Firestore
-        alert('Image size must be less than 1MB');
+        toast.error('Image size must be less than 1MB');
         return;
       }
       const reader = new FileReader();
@@ -40,7 +41,7 @@ export default function AdminTrainers() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTrainer.image) {
-      alert('Please select an image');
+      toast.error('Please select an image');
       return;
     }
     setLoading(true);
@@ -49,6 +50,7 @@ export default function AdminTrainers() {
       setNewTrainer({ name: '', specialty: '', bio: '', image: '' });
       setPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      toast.success('Trainer added successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'trainers');
     } finally {
