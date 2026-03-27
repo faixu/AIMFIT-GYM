@@ -8,9 +8,10 @@ interface AuthDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'login' | 'register';
+  onSuccess?: () => void;
 }
 
-export default function AuthDrawer({ isOpen, onClose, initialMode = 'login' }: AuthDrawerProps) {
+export default function AuthDrawer({ isOpen, onClose, initialMode = 'login', onSuccess }: AuthDrawerProps) {
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -41,6 +42,7 @@ export default function AuthDrawer({ isOpen, onClose, initialMode = 'login' }: A
         await updateProfile(userCredential.user, { displayName: name });
         toast.success('Account created!');
       }
+      if (onSuccess) onSuccess();
       onClose();
     } catch (error: any) {
       toast.error(error.message || 'Authentication failed');
@@ -54,6 +56,7 @@ export default function AuthDrawer({ isOpen, onClose, initialMode = 'login' }: A
     try {
       await signInWithPopup(auth, googleProvider);
       toast.success('Signed in with Google!');
+      if (onSuccess) onSuccess();
       onClose();
     } catch (error: any) {
       toast.error('Google sign-in failed');

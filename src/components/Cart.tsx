@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
+import AuthDrawer from './AuthDrawer';
 
 export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
+  const [step, setStep] = useState<'cart' | 'checkout' | 'success' | 'auth-prompt'>('cart');
   const [upiQrCode, setUpiQrCode] = useState<string | null>(null);
+  const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
@@ -21,6 +24,17 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    
+    if (!auth.currentUser) {
+      setStep('auth-prompt');
+      return;
+    }
+    
+    setStep('checkout');
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthDrawerOpen(false);
     setStep('checkout');
   };
 
@@ -124,6 +138,48 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </>
               )}
 
+              {step === 'auth-prompt' && (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-8 p-4">
+                  <div className="w-24 h-24 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent">
+                    <UserIcon size={48} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Account Required</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Please log in or create an account to complete your purchase and track your orders.
+                    </p>
+                  </div>
+                  
+                  <div className="w-full space-y-4">
+                    <button 
+                      onClick={() => {
+                        setAuthMode('login');
+                        setIsAuthDrawerOpen(true);
+                      }}
+                      className="btn-primary w-full py-5 flex items-center justify-center gap-3"
+                    >
+                      <LogIn size={20} />
+                      Log In to Continue
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setAuthMode('register');
+                        setIsAuthDrawerOpen(true);
+                      }}
+                      className="w-full py-4 text-gray-400 hover:text-white font-bold uppercase tracking-widest text-xs transition-colors"
+                    >
+                      New here? Create Account
+                    </button>
+                    <button 
+                      onClick={() => setStep('cart')}
+                      className="block w-full text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] hover:text-brand-accent transition-colors"
+                    >
+                      Back to Cart
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {step === 'checkout' && (
                 <div className="space-y-8 text-center">
                   <div className="space-y-2">
@@ -206,6 +262,13 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               </div>
             )}
           </motion.div>
+          
+          <AuthDrawer 
+            isOpen={isAuthDrawerOpen} 
+            onClose={() => setIsAuthDrawerOpen(false)} 
+            initialMode={authMode} 
+            onSuccess={handleAuthSuccess}
+          />
         </>
       )}
     </AnimatePresence>

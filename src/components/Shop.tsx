@@ -72,13 +72,9 @@ export default function Shop() {
       <AuthDrawer isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialMode={authMode} />
       
       {/* Header Actions */}
-      <div className="fixed top-8 right-8 z-50 flex items-center gap-4">
+      <div className="fixed top-8 left-8 z-50 flex items-center gap-4">
         {user ? (
-          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 p-2 pl-4 rounded-full">
-            <div className="text-right hidden sm:block">
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent">Welcome</p>
-              <p className="text-xs font-bold truncate max-w-[100px]">{user.displayName || user.email}</p>
-            </div>
+          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 p-2 pr-4 rounded-full">
             <button 
               onClick={() => setIsAuthOpen(true)}
               className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-all"
@@ -86,6 +82,10 @@ export default function Shop() {
             >
               <UserIcon size={18} />
             </button>
+            <div className="text-left hidden sm:block">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent">Welcome</p>
+              <p className="text-xs font-bold truncate max-w-[100px]">{user.displayName || user.email}</p>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-2">

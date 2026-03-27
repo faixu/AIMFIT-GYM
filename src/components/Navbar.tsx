@@ -60,15 +60,47 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-dark/80 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <div className="flex-shrink-0">
-            <button 
-              onClick={handleLogoClick}
-              className="flex items-center gap-2 focus:outline-none cursor-default"
-            >
-              <span className="text-2xl font-display font-black tracking-tighter italic">
-                AIM<span className="text-brand-accent">FIT</span>
-              </span>
-            </button>
+          <div className="flex items-center gap-8">
+            <div className="flex-shrink-0">
+              <button 
+                onClick={handleLogoClick}
+                className="flex items-center gap-2 focus:outline-none cursor-default"
+              >
+                <span className="text-2xl font-display font-black tracking-tighter italic">
+                  AIM<span className="text-brand-accent">FIT</span>
+                </span>
+              </button>
+            </div>
+
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <button 
+                  onClick={() => openAuth('login')}
+                  className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full transition-all group"
+                >
+                  <UserIcon size={18} className="text-brand-accent" />
+                  <div className="text-left hidden lg:block">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent leading-none mb-1">Profile</p>
+                    <p className="text-xs font-bold truncate max-w-[80px] leading-none">{user.displayName || user.email?.split('@')[0]}</p>
+                  </div>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => openAuth('login')}
+                    className="text-sm font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => openAuth('register')}
+                    className="btn-primary !py-2 !px-4 !text-xs"
+                  >
+                    Register
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="hidden md:block">
@@ -93,34 +125,7 @@ export default function Navbar() {
               </Link>
               
               <div className="h-6 w-px bg-white/10 mx-2"></div>
-
-              {user ? (
-                <button 
-                  onClick={() => openAuth('login')}
-                  className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full transition-all group"
-                >
-                  <div className="text-right hidden lg:block">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent leading-none mb-1">Profile</p>
-                    <p className="text-xs font-bold truncate max-w-[80px] leading-none">{user.displayName || user.email?.split('@')[0]}</p>
-                  </div>
-                  <UserIcon size={18} className="text-brand-accent" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => openAuth('login')}
-                    className="text-sm font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => openAuth('register')}
-                    className="btn-primary !py-2 !px-4 !text-xs"
-                  >
-                    Register
-                  </button>
-                </div>
-              )}
+              <a href="#contact" className="btn-primary !py-2 !px-6">Join Now</a>
             </div>
           </div>
           
