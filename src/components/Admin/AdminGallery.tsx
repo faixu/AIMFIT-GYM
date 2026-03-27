@@ -3,12 +3,14 @@ import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { Trash2, Plus, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import ConfirmationModal from './ConfirmationModal';
 
 export default function AdminGallery() {
   const [images, setImages] = useState<any[]>([]);
   const [newImage, setNewImage] = useState({ title: '', category: 'Training', image: '' });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -16,7 +18,7 @@ export default function AdminGallery() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setImages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'gallery');
+      console.error('Error fetching gallery:', error);
     });
     return () => unsubscribe();
   }, []);
@@ -60,12 +62,13 @@ export default function AdminGallery() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
+  const handleDelete = async () => {
+    if (!deleteModal.id) return;
     try {
-      await deleteDoc(doc(db, 'gallery', id));
+      await deleteDoc(doc(db, 'gallery', deleteModal.id));
+      setDeleteModal({ isOpen: false, id: null });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `gallery/${id}`);
+      handleFirestoreError(error, OperationType.DELETE, `gallery/${deleteModal.id}`);
     }
   };
 
@@ -179,8 +182,8 @@ export default function AdminGallery() {
                 <p className="text-[10px] text-brand-accent font-black uppercase tracking-[0.2em]">{img.category}</p>
               </div>
               <button 
-                onClick={() => handleDelete(img.id)}
-                className="absolute top-4 right-4 w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center transition-all hover:scale-110 shadow-xl z-10"
+                onClick={() => setDeleteModal({ isOpen: true, id: img.id })}
+                className="absolute top-4 right-4 w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center transition-all hover:scale-110 shadow-xl z-20"
               >
                 <Trash2 size={18} />
               </button>
@@ -188,6 +191,14 @@ export default function AdminGallery() {
           ))}
         </AnimatePresence>
       </div>
+
+      <ConfirmationModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onConfirm={handleDelete}
+        title="Delete Image"
+        message="Are you sure you want to delete this image? This action cannot be undone."
+      />
     </div>
   );
 }
