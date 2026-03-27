@@ -16,6 +16,7 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import StickyJoinNow from "./components/StickyJoinNow";
 import AdminPanel from "./components/Admin/AdminPanel";
 import Shop from "./components/Shop";
+import ShopAuth from "./components/Shop/ShopAuth";
 import { CartProvider } from "./context/CartContext";
 
 function MainSite() {
@@ -49,6 +50,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<MainSite />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/shop/auth" element={<ShopAuth />} />
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </Router>

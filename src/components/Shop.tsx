@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react";
-import { ShoppingCart, Search, Filter, ChevronRight, Package, Check, XCircle, ShoppingBag } from "lucide-react";
-import { db } from '../lib/firebase';
+import { ShoppingCart, Search, Filter, ChevronRight, Package, Check, XCircle, ShoppingBag, User as UserIcon, LogOut } from "lucide-react";
+import { db, auth, signOut, onAuthStateChanged, type User } from '../lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useCart } from '../context/CartContext';
 import Cart from './Cart';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const categories = ["All", "Protein", "Pre-workout", "Creatine", "Vitamins", "Accessories"];
 
@@ -14,8 +16,17 @@ export default function Shop() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   
   const { addToCart, totalItems } = useCart();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, 'supplements'), orderBy('createdAt', 'desc'));
@@ -25,6 +36,15 @@ export default function Shop() {
     });
     return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Failed to sign out');
+    }
+  };
 
   const handleBuyNow = (product: any) => {
     addToCart(product);
@@ -42,23 +62,50 @@ export default function Shop() {
     <div className="min-h-screen bg-brand-dark pt-32 pb-24">
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       
-      {/* Floating Cart Button */}
-      <motion.button 
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center text-white shadow-2xl shadow-brand-accent/40 group overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-        <div className="relative">
-          <ShoppingBag size={28} />
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-brand-accent rounded-full text-[10px] font-black flex items-center justify-center shadow-lg">
-              {totalItems}
-            </span>
-          )}
-        </div>
-      </motion.button>
+      {/* Header Actions */}
+      <div className="fixed top-8 right-8 z-50 flex items-center gap-4">
+        {user ? (
+          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 p-2 pl-4 rounded-full">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent">Welcome</p>
+              <p className="text-xs font-bold truncate max-w-[100px]">{user.displayName || user.email}</p>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="w-10 h-10 bg-white/5 hover:bg-red-500/20 hover:text-red-500 rounded-full flex items-center justify-center transition-all"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        ) : (
+          <Link 
+            to="/shop/auth"
+            className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full hover:bg-brand-accent hover:border-brand-accent transition-all group"
+          >
+            <UserIcon size={18} className="text-brand-accent group-hover:text-white transition-colors" />
+            <span className="text-xs font-black uppercase tracking-widest">Login</span>
+          </Link>
+        )}
+
+        {/* Floating Cart Button */}
+        <motion.button 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          onClick={() => setIsCartOpen(true)}
+          className="w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center text-white shadow-2xl shadow-brand-accent/40 group overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+          <div className="relative">
+            <ShoppingBag size={28} />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-brand-accent rounded-full text-[10px] font-black flex items-center justify-center shadow-lg">
+                {totalItems}
+              </span>
+            )}
+          </div>
+        </motion.button>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
