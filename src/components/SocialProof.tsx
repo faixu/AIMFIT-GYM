@@ -1,5 +1,8 @@
 import { motion } from "motion/react";
 import { Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const testimonials = [
   {
@@ -26,12 +29,37 @@ const testimonials = [
 ];
 
 export default function SocialProof() {
+  const [settings, setSettings] = useState({
+    socialProofTitle: 'Real Results, Real People',
+    socialProofSubtitle: 'Don\'t just take our word for it. Hear from our members who transformed their lives at AimFit.'
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setSettings({
+          socialProofTitle: data.socialProofTitle || 'Real Results, Real People',
+          socialProofSubtitle: data.socialProofSubtitle || 'Don\'t just take our word for it. Hear from our members who transformed their lives at AimFit.'
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section className="py-24 bg-brand-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl mb-4">Real Results, <span className="text-brand-accent">Real People</span></h2>
-          <p className="text-gray-400 max-w-2xl mx-auto italic">Don't just take our word for it. Hear from our members who transformed their lives at AimFit.</p>
+          <h2 className="text-4xl md:text-5xl mb-4">
+            {settings.socialProofTitle.split(',').map((part, i) => (
+              <span key={i}>
+                {i > 0 && <span className="text-brand-accent">, {part}</span>}
+                {i === 0 && part}
+              </span>
+            ))}
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto italic">{settings.socialProofSubtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
