@@ -3,6 +3,7 @@ import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 import { Trash2, Plus, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import ConfirmationModal from './ConfirmationModal';
 
 export default function AdminPricing() {
@@ -27,6 +28,7 @@ export default function AdminPricing() {
         features: newPlan.features.split('\n').filter(f => f.trim() !== '')
       });
       setNewPlan({ name: '', price: '', period: 'month', features: '', popular: false });
+      toast.success('Pricing plan added successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'pricing');
     } finally {
