@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { db, auth } from '../lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import AuthDrawer from './AuthDrawer';
+import { toast } from 'sonner';
 
 export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
@@ -12,6 +13,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   const [upiQrCode, setUpiQrCode] = useState<string | null>(null);
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
@@ -38,13 +40,40 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     setStep('checkout');
   };
 
-  const handlePaymentComplete = () => {
-    setStep('success');
-    setTimeout(() => {
-      clearCart();
-      onClose();
-      setStep('cart');
-    }, 3000);
+  const handlePaymentComplete = async () => {
+    if (!auth.currentUser) return;
+    
+    setIsProcessing(true);
+    try {
+      // Save order to Firestore
+      await addDoc(collection(db, 'orders'), {
+        userId: auth.currentUser.uid,
+        userEmail: auth.currentUser.email,
+        userName: auth.currentUser.displayName || 'Customer',
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        totalAmount: totalPrice,
+        status: 'paid',
+        createdAt: serverTimestamp()
+      });
+
+      setStep('success');
+      setTimeout(() => {
+        clearCart();
+        onClose();
+        setStep('cart');
+      }, 3000);
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast.error('Failed to process order. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -215,10 +244,17 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                     </div>
                     <button 
                       onClick={handlePaymentComplete}
-                      disabled={!upiQrCode}
-                      className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 disabled:opacity-50"
+                      disabled={!upiQrCode || isProcessing}
+                      className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 disabled:opacity-50 flex items-center justify-center gap-3"
                     >
-                      I Have Paid
+                      {isProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        'I Have Paid'
+                      )}
                     </button>
                     <button 
                       onClick={() => setStep('cart')}
