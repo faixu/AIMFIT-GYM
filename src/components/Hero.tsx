@@ -30,7 +30,7 @@ export default function Hero() {
         <img 
           src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop" 
           alt="Gym Background" 
-          className="w-full h-full object-cover opacity-40"
+          className="w-full h-full object-cover opacity-60"
           referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/60 to-transparent"></div>

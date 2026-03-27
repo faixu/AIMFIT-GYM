@@ -37,7 +37,7 @@ export default function Trainers() {
                 <img 
                   src={t.image} 
                   alt={t.name} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-60"></div>

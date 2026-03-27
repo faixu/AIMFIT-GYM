@@ -181,7 +181,7 @@ export default function AdminTrainers() {
               className="glass-card rounded-3xl overflow-hidden group relative border-white/5 hover:border-brand-accent/30 transition-all"
             >
               <div className="aspect-[3/4] relative overflow-hidden">
-                <img src={t.image} alt={t.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110" />
+                <img src={t.image} alt={t.name} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-60"></div>
               </div>
               <div className="p-6">
