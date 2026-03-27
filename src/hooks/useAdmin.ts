@@ -9,18 +9,24 @@ export function useAdmin() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Check if user is admin in Firestore or matches the default admin email
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        const role = userDoc.data()?.role;
-        
-        const isDefaultAdmin = currentUser.email === "faisal.hassan.0996@gmail.com";
-        setIsAdmin(role === 'admin' || isDefaultAdmin);
-      } else {
+      try {
+        setUser(currentUser);
+        if (currentUser) {
+          // Check if user is admin in Firestore or matches the default admin email
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          const role = userDoc.data()?.role;
+          
+          const isDefaultAdmin = currentUser.email === "faisal.hassan.0996@gmail.com";
+          setIsAdmin(role === 'admin' || isDefaultAdmin);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
         setIsAdmin(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
