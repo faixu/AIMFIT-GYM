@@ -5,6 +5,7 @@ import { db, auth, signOut, onAuthStateChanged, type User } from '../lib/firebas
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useCart } from '../context/CartContext';
 import Cart from './Cart';
+import AuthDrawer from './AuthDrawer';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -16,6 +17,8 @@ export default function Shop() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   
@@ -46,6 +49,11 @@ export default function Shop() {
     }
   };
 
+  const openAuth = (mode: 'login' | 'register') => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+  };
+
   const handleBuyNow = (product: any) => {
     addToCart(product);
     setIsCartOpen(true);
@@ -61,6 +69,7 @@ export default function Shop() {
   return (
     <div className="min-h-screen bg-brand-dark pt-32 pb-24">
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <AuthDrawer isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialMode={authMode} />
       
       {/* Header Actions */}
       <div className="fixed top-8 right-8 z-50 flex items-center gap-4">
@@ -71,28 +80,28 @@ export default function Shop() {
               <p className="text-xs font-bold truncate max-w-[100px]">{user.displayName || user.email}</p>
             </div>
             <button 
-              onClick={handleLogout}
-              className="w-10 h-10 bg-white/5 hover:bg-red-500/20 hover:text-red-500 rounded-full flex items-center justify-center transition-all"
-              title="Logout"
+              onClick={() => setIsAuthOpen(true)}
+              className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-all"
+              title="Profile"
             >
-              <LogOut size={18} />
+              <UserIcon size={18} />
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Link 
-              to="/shop/login"
+            <button 
+              onClick={() => openAuth('login')}
               className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full hover:bg-brand-accent hover:border-brand-accent transition-all group"
             >
               <UserIcon size={18} className="text-brand-accent group-hover:text-white transition-colors" />
               <span className="text-xs font-black uppercase tracking-widest">Login</span>
-            </Link>
-            <Link 
-              to="/shop/register"
+            </button>
+            <button 
+              onClick={() => openAuth('register')}
               className="hidden sm:flex items-center gap-3 bg-brand-accent backdrop-blur-md border border-brand-accent px-6 py-3 rounded-full hover:bg-white hover:text-brand-dark hover:border-white transition-all group"
             >
               <span className="text-xs font-black uppercase tracking-widest">Register</span>
-            </Link>
+            </button>
           </div>
         )}
 

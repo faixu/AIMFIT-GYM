@@ -1,16 +1,34 @@
 import { motion } from "motion/react";
-import { Menu, X, ShoppingBag } from "lucide-react";
-import { useState, useRef } from "react";
+import { Menu, X, ShoppingBag, User as UserIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import { auth, onAuthStateChanged, type User } from "../lib/firebase";
+import AuthDrawer from "./AuthDrawer";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const clickCount = useRef(0);
   const lastClickTime = useRef(0);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const isHome = location.pathname === "/";
+
+  const openAuth = (mode: 'login' | 'register') => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+    setIsOpen(false);
+  };
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,11 +91,55 @@ export default function Navbar() {
                 <ShoppingBag size={18} />
                 Shop
               </Link>
-              <a href="#contact" className="btn-primary !py-2 !px-6">Join Now</a>
+              
+              <div className="h-6 w-px bg-white/10 mx-2"></div>
+
+              {user ? (
+                <button 
+                  onClick={() => openAuth('login')}
+                  className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-full transition-all group"
+                >
+                  <div className="text-right hidden lg:block">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-accent leading-none mb-1">Profile</p>
+                    <p className="text-xs font-bold truncate max-w-[80px] leading-none">{user.displayName || user.email?.split('@')[0]}</p>
+                  </div>
+                  <UserIcon size={18} className="text-brand-accent" />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => openAuth('login')}
+                    className="text-sm font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => openAuth('register')}
+                    className="btn-primary !py-2 !px-4 !text-xs"
+                  >
+                    Register
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           
           <div className="md:hidden flex items-center gap-4">
+            {user ? (
+              <button 
+                onClick={() => openAuth('login')}
+                className="p-2 text-brand-accent"
+              >
+                <UserIcon size={24} />
+              </button>
+            ) : (
+              <button 
+                onClick={() => openAuth('login')}
+                className="p-2 text-white"
+              >
+                <UserIcon size={24} />
+              </button>
+            )}
             <Link 
               to="/shop" 
               className={`p-2 rounded-md ${location.pathname === "/shop" ? "text-brand-accent" : "text-white"}`}
@@ -122,10 +184,32 @@ export default function Navbar() {
               <ShoppingBag size={20} />
               Shop
             </Link>
+            {!user && (
+              <>
+                <button 
+                  onClick={() => openAuth('login')}
+                  className="block w-full text-left px-3 py-4 text-base font-medium hover:bg-white/5 uppercase"
+                >
+                  Login
+                </button>
+                <button 
+                  onClick={() => openAuth('register')}
+                  className="block w-full text-left px-3 py-4 text-base font-bold text-brand-accent uppercase"
+                >
+                  Register
+                </button>
+              </>
+            )}
             <a href="#contact" onClick={() => setIsOpen(false)} className="block px-3 py-4 text-base font-bold text-brand-accent uppercase">Join Now</a>
           </div>
         </motion.div>
       )}
+      
+      <AuthDrawer 
+        isOpen={isAuthOpen} 
+        onClose={() => setIsAuthOpen(false)} 
+        initialMode={authMode} 
+      />
     </nav>
   );
 }
