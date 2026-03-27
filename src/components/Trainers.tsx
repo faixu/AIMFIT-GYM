@@ -1,46 +1,17 @@
 import { motion } from "motion/react";
 import { Instagram, Twitter } from "lucide-react";
 import { useState, useEffect } from "react";
-import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-
-const staticTrainers = [
-  {
-    name: "Vikram Singh",
-    specialty: "Bodybuilding Expert",
-    bio: "10+ years experience in competitive bodybuilding and transformation.",
-    image: "https://images.unsplash.com/photo-1567013127542-490d757e51fe?q=80&w=1974&auto=format&fit=crop"
-  },
-  {
-    name: "Arjun Kapoor",
-    specialty: "Strength & Conditioning",
-    bio: "Certified specialist focused on functional strength and athletic performance.",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    name: "Sanya Malhotra",
-    specialty: "Weight Loss Specialist",
-    bio: "Helped over 200+ clients achieve their weight loss goals through HIIT.",
-    image: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=2070&auto=format&fit=crop"
-  }
-];
 
 export default function Trainers() {
   const [trainers, setTrainers] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'trainers'), (snapshot) => {
-      if (!snapshot.empty) {
-        setTrainers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } else {
-        setTrainers(staticTrainers);
-      }
+      setTrainers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => {
       console.error('Error fetching trainers:', error);
-      try {
-        handleFirestoreError(error, OperationType.GET, 'trainers');
-      } catch (e) {}
-      setTrainers(staticTrainers);
     });
     return () => unsubscribe();
   }, []);

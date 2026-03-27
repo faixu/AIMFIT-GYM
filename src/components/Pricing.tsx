@@ -1,71 +1,17 @@
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { useState, useEffect } from "react";
-import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-
-const staticPlans = [
-  {
-    name: "Basic Plan",
-    price: "2000",
-    period: "month",
-    features: [
-      "Full Gym Access",
-      "Standard Equipment",
-      "Locker Room Access",
-      "Free Orientation",
-      "General Support"
-    ],
-    popular: false,
-    cta: "Choose Plan"
-  },
-  {
-    name: "Premium Plan",
-    price: "2500",
-    period: "month",
-    features: [
-      "Full Gym Access",
-      "Trainer Assistance",
-      "Personalized Guidance",
-      "Nutrition Plan",
-      "Progress Tracking",
-      "Priority Support"
-    ],
-    popular: true,
-    cta: "Choose Plan"
-  },
-  {
-    name: "Quarterly Plan",
-    price: "6000",
-    period: "3 months",
-    features: [
-      "All Premium Features",
-      "Discounted Rate",
-      "Body Composition Analysis",
-      "1 PT Session Free",
-      "Supplement Advice"
-    ],
-    popular: false,
-    cta: "Save Now"
-  }
-];
 
 export default function Pricing() {
   const [plans, setPlans] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'pricing'), (snapshot) => {
-      if (!snapshot.empty) {
-        setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } else {
-        setPlans(staticPlans);
-      }
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (error) => {
       console.error('Error fetching pricing:', error);
-      try {
-        handleFirestoreError(error, OperationType.GET, 'pricing');
-      } catch (e) {}
-      setPlans(staticPlans);
     });
     return () => unsubscribe();
   }, []);
