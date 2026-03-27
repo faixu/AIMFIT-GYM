@@ -79,13 +79,21 @@ export default function Shop() {
             </button>
           </div>
         ) : (
-          <Link 
-            to="/shop/auth"
-            className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full hover:bg-brand-accent hover:border-brand-accent transition-all group"
-          >
-            <UserIcon size={18} className="text-brand-accent group-hover:text-white transition-colors" />
-            <span className="text-xs font-black uppercase tracking-widest">Login</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link 
+              to="/shop/login"
+              className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full hover:bg-brand-accent hover:border-brand-accent transition-all group"
+            >
+              <UserIcon size={18} className="text-brand-accent group-hover:text-white transition-colors" />
+              <span className="text-xs font-black uppercase tracking-widest">Login</span>
+            </Link>
+            <Link 
+              to="/shop/register"
+              className="hidden sm:flex items-center gap-3 bg-brand-accent backdrop-blur-md border border-brand-accent px-6 py-3 rounded-full hover:bg-white hover:text-brand-dark hover:border-white transition-all group"
+            >
+              <span className="text-xs font-black uppercase tracking-widest">Register</span>
+            </Link>
+          </div>
         )}
 
         {/* Floating Cart Button */}

@@ -1,17 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User as UserIcon, ArrowRight, Github, Chrome, AlertCircle, CheckCircle2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from '../../lib/firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-export default function ShopAuth() {
-  const [isLogin, setIsLogin] = useState(true);
+export default function ShopAuth({ initialMode = 'login' }: { initialMode?: 'login' | 'register' }) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsLogin(initialMode === 'login');
+  }, [initialMode]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

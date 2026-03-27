@@ -51,6 +51,8 @@ export default function App() {
           <Route path="/" element={<MainSite />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/shop/auth" element={<ShopAuth />} />
+          <Route path="/shop/login" element={<ShopAuth initialMode="login" />} />
+          <Route path="/shop/register" element={<ShopAuth initialMode="register" />} />
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </Router>
