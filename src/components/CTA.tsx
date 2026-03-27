@@ -30,7 +30,7 @@ export default function CTA() {
               Join Now
             </a>
             <a 
-              href="https://wa.me/919876543210" 
+              href="https://wa.me/919622427566" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-3 text-white font-bold uppercase tracking-widest hover:text-brand-accent transition-colors"

@@ -5,12 +5,12 @@ import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function WhatsAppButton() {
-  const [whatsappNumber, setWhatsappNumber] = useState('919876543210');
+  const [whatsappNumber, setWhatsappNumber] = useState('919622427566');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
       if (doc.exists()) {
-        setWhatsappNumber(doc.data().whatsappNumber || '919876543210');
+        setWhatsappNumber(doc.data().whatsappNumber || '919622427566');
       }
     });
     return () => unsubscribe();

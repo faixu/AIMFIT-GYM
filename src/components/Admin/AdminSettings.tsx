@@ -9,10 +9,10 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState({
     heroTitle: 'PUSH YOUR LIMITS. ACHIEVE YOUR GOALS.',
     heroSubtitle: 'The most results-driven gym in India. Professional trainers, state-of-the-art equipment, and a community that pushes you to be your best.',
-    contactPhone: '+91 98765 43210',
+    contactPhone: '+91 96224 27566',
     contactEmail: 'info@aimfitgym.com',
     contactAddress: '123 Fitness Street, Gym Nagar, Mumbai, Maharashtra 400001',
-    whatsappNumber: '919876543210',
+    whatsappNumber: '919622427566',
     instagramUrl: 'https://instagram.com/aimfitgym',
     facebookUrl: 'https://facebook.com/aimfitgym',
     upiQrCode: ''
@@ -174,7 +174,7 @@ export default function AdminSettings() {
                   value={settings.whatsappNumber}
                   onChange={e => setSettings({...settings, whatsappNumber: e.target.value})}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all"
-                  placeholder="e.g. 919876543210"
+                  placeholder="e.g. 919622427566"
                   required
                 />
               </div>

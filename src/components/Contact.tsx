@@ -6,7 +6,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Contact() {
   const [settings, setSettings] = useState({
-    contactPhone: '+91 98765 43210',
+    contactPhone: '+91 96224 27566',
     contactEmail: 'hello@aimfitgym.com',
     contactAddress: '123 Fitness Lane, Sector 45, Gurgaon, India'
   });
@@ -22,7 +22,7 @@ export default function Contact() {
       if (doc.exists()) {
         const data = doc.data();
         setSettings({
-          contactPhone: data.contactPhone || '+91 98765 43210',
+          contactPhone: data.contactPhone || '+91 96224 27566',
           contactEmail: data.contactEmail || 'hello@aimfitgym.com',
           contactAddress: data.contactAddress || '123 Fitness Lane, Sector 45, Gurgaon, India'
         });
