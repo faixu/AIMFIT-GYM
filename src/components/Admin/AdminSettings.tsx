@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare, QrCode, Upload, X, Info, Dumbbell, ShieldCheck, Star, Smartphone } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Globe, Phone, Mail, MapPin, MessageSquare, QrCode, Upload, X, Info, Dumbbell, ShieldCheck, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -25,9 +25,7 @@ export default function AdminSettings() {
     whatsappNumber: '919622427566',
     instagramUrl: 'https://instagram.com/aimfitgym',
     facebookUrl: 'https://facebook.com/aimfitgym',
-    upiQrCode: '',
-    gpayNumber: '+91 96224 27566',
-    gpayUpiId: '9622427566@okbizaxis'
+    upiQrCode: ''
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -354,36 +352,6 @@ export default function AdminSettings() {
               <QrCode size={16} />
               Payment Settings
             </h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Google Pay Number</label>
-                <div className="relative">
-                  <Smartphone size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input 
-                    type="text" 
-                    value={settings.gpayNumber}
-                    onChange={e => setSettings({...settings, gpayNumber: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 focus:border-brand-accent outline-none transition-all"
-                    placeholder="+91 96224 27566"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Google Pay UPI ID</label>
-                <div className="relative">
-                  <QrCode size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input 
-                    type="text" 
-                    value={settings.gpayUpiId}
-                    onChange={e => setSettings({...settings, gpayUpiId: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 focus:border-brand-accent outline-none transition-all"
-                    placeholder="9622427566@okbizaxis"
-                  />
-                </div>
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div>
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">UPI QR Code Scanner</label>
