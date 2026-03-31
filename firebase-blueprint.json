@@ -69,9 +69,24 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Order timestamp" }
       },
       "required": ["userId", "userEmail", "items", "totalAmount", "paymentMethod", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "The user's email address" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "The user's role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "User creation timestamp" }
+      },
+      "required": ["email", "role"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
+    },
     "/siteContent/{sectionId}": {
       "schema": "ContentSection",
       "description": "Dynamic content for various website sections"
