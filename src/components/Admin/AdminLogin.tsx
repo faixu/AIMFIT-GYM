@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { auth, googleProvider, signInWithPopup, onAuthStateChanged, type User } from '../../lib/firebase';
+import { auth, onAuthStateChanged, type User, signInWithEmailAndPassword } from '../../lib/firebase';
 import { motion } from 'motion/react';
-import { LogIn, ShieldAlert, LogOut } from 'lucide-react';
+import { LogIn, ShieldAlert, LogOut, Mail, Lock } from 'lucide-react';
 
 export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -16,19 +19,17 @@ export default function AdminLogin() {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
+    setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/popup-blocked') {
-        setError('Popup blocked by browser. Please allow popups for this site.');
-      } else if (err.code === 'auth/cancelled-popup-request') {
-        // Ignore user cancellation
-      } else {
-        setError(err.message || 'Login failed. Please try again.');
-      }
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,13 +62,6 @@ export default function AdminLogin() {
             
             <div className="flex flex-col gap-3">
               <button 
-                onClick={handleLogin}
-                className="btn-primary w-full flex items-center justify-center gap-3 py-4"
-              >
-                <LogIn size={20} />
-                Try Another Account
-              </button>
-              <button 
                 onClick={() => auth.signOut()}
                 className="btn-secondary w-full flex items-center justify-center gap-3 py-4"
               >
@@ -86,13 +80,45 @@ export default function AdminLogin() {
               </div>
             )}
             
-            <button 
-              onClick={handleLogin}
-              className="btn-primary w-full flex items-center justify-center gap-3 py-4"
-            >
-              <LogIn size={20} />
-              Sign in with Google
-            </button>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="relative">
+                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Admin Email"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:border-brand-accent outline-none transition-all text-white"
+                  required
+                />
+              </div>
+              <div className="relative">
+                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:border-brand-accent outline-none transition-all text-white"
+                  required
+                />
+              </div>
+              
+              <button 
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full flex items-center justify-center gap-3 py-4"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <LogIn size={20} />
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>
           </>
         )}
       </motion.div>

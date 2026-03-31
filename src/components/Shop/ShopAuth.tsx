@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User as UserIcon, ArrowRight, Github, Chrome, AlertCircle, CheckCircle2, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from '../../lib/firebase';
+import { Mail, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from '../../lib/firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -33,19 +33,6 @@ export default function ShopAuth({ initialMode = 'login' }: { initialMode?: 'log
     } catch (error: any) {
       console.error('Auth error:', error);
       toast.error(error.message || 'Authentication failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success('Signed in with Google!');
-      navigate('/shop');
-    } catch (error: any) {
-      toast.error('Google sign-in failed');
     } finally {
       setLoading(false);
     }
@@ -153,26 +140,6 @@ export default function ShopAuth({ initialMode = 'login' }: { initialMode?: 'log
               )}
             </button>
           </form>
-
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/5"></div>
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-              <span className="bg-brand-dark px-4 text-gray-500">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 gap-4">
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 py-4 rounded-2xl hover:bg-white/10 transition-all group"
-            >
-              <Chrome size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-              <span className="text-sm font-bold">Google</span>
-            </button>
-          </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
