@@ -8,7 +8,8 @@ import AdminPricing from './AdminPricing';
 import AdminShop from './AdminShop';
 import AdminSettings from './AdminSettings';
 import AdminOrders from './AdminOrders';
-import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList } from 'lucide-react';
+import AdminUsers from './AdminUsers';
+import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -32,6 +33,7 @@ export default function AdminPanel() {
     { id: 'trainers', label: 'Trainers', icon: Users },
     { id: 'shop', label: 'Shop', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: ClipboardList },
+    { id: 'users', label: 'Users', icon: ShieldCheck },
     { id: 'pricing', label: 'Pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -97,6 +99,7 @@ export default function AdminPanel() {
           {activeTab === 'trainers' && <AdminTrainers />}
           {activeTab === 'shop' && <AdminShop />}
           {activeTab === 'orders' && <AdminOrders />}
+          {activeTab === 'users' && <AdminUsers />}
           {activeTab === 'pricing' && <AdminPricing />}
           {activeTab === 'settings' && <AdminSettings />}
         </div>
