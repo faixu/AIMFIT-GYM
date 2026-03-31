@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
-import { auth, onAuthStateChanged, type User, signInWithEmailAndPassword } from '../../lib/firebase';
+import { auth, googleProvider, signInWithPopup, onAuthStateChanged, type User } from '../../lib/firebase';
 import { motion } from 'motion/react';
-import { LogIn, ShieldAlert, LogOut, Mail, Lock } from 'lucide-react';
+import { LogIn, ShieldAlert, LogOut, Chrome } from 'lucide-react';
 
 export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -19,17 +16,13 @@ export default function AdminLogin() {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setError(null);
-    setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
+      setError('Login failed. Please try again.');
     }
   };
 
@@ -80,45 +73,13 @@ export default function AdminLogin() {
               </div>
             )}
             
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="relative">
-                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Admin Email"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:border-brand-accent outline-none transition-all text-white"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:border-brand-accent outline-none transition-all text-white"
-                  required
-                />
-              </div>
-              
-              <button 
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full flex items-center justify-center gap-3 py-4"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <LogIn size={20} />
-                    Sign In
-                  </>
-                )}
-              </button>
-            </form>
+            <button 
+              onClick={handleLogin}
+              className="btn-primary w-full flex items-center justify-center gap-3 py-4"
+            >
+              <Chrome size={20} />
+              Sign In with Google
+            </button>
           </>
         )}
       </motion.div>
