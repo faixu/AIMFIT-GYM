@@ -48,6 +48,8 @@
         "contactEmail": { "type": "string" },
         "contactAddress": { "type": "string" },
         "whatsappNumber": { "type": "string" },
+        "gpayNumber": { "type": "string", "description": "The phone number for Google Pay" },
+        "gpayUpiId": { "type": "string", "description": "The UPI ID for Google Pay" },
         "instagramUrl": { "type": "string" },
         "facebookUrl": { "type": "string" },
         "upiQrCode": { "type": "string", "description": "Base64 string of the UPI QR code" },

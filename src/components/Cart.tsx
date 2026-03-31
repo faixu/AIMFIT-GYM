@@ -22,6 +22,7 @@ export default function Cart({
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const [step, setStep] = useState(initialStep);
   const [upiQrCode, setUpiQrCode] = useState<string | null>(null);
+  const [gpaySettings, setGpaySettings] = useState({ number: '', upiId: '' });
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -56,7 +57,12 @@ export default function Cart({
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
       if (doc.exists()) {
-        setUpiQrCode(doc.data().upiQrCode || null);
+        const data = doc.data();
+        setUpiQrCode(data.upiQrCode || null);
+        setGpaySettings({
+          number: data.gpayNumber || '+91 96224 27566',
+          upiId: data.gpayUpiId || '9622427566@okbizaxis'
+        });
       }
     });
     return () => unsubscribe();
@@ -360,56 +366,92 @@ export default function Cart({
                   <div className="space-y-3">
                     <h3 className="text-2xl font-black uppercase tracking-tight italic">Google Pay</h3>
                     <p className="text-gray-400 text-sm leading-relaxed">
-                      Complete your payment of <span className="text-brand-accent font-black">₹{totalPrice}</span> using Google Pay.
+                      Pay <span className="text-brand-accent font-black">₹{totalPrice}</span> to <span className="text-white font-bold">{gpaySettings.number}</span>
                     </p>
                   </div>
 
-                  <div className="w-full flex justify-center">
-                    <GooglePayButton
-                      environment="TEST"
-                      buttonColor="black"
-                      buttonType="buy"
-                      paymentRequest={{
-                        apiVersion: 2,
-                        apiVersionMinor: 0,
-                        allowedPaymentMethods: [
-                          {
-                            type: 'CARD',
-                            parameters: {
-                              allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                              allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                            },
-                            tokenizationSpecification: {
-                              type: 'PAYMENT_GATEWAY',
-                              parameters: {
-                                gateway: 'example',
-                                gatewayMerchantId: 'exampleGatewayMerchantId',
+                  <div className="w-full space-y-4">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left">
+                      <p className="text-[10px] uppercase font-black text-brand-accent mb-1 tracking-widest">Payment Details</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-400 font-bold uppercase">UPI ID</span>
+                        <span className="text-xs text-white font-mono">{gpaySettings.upiId}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <a 
+                        href={`upi://pay?pa=${gpaySettings.upiId}&pn=AimFit&am=${totalPrice}&cu=INR`}
+                        className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 flex items-center justify-center gap-3"
+                      >
+                        <Smartphone size={20} />
+                        Pay via GPay App
+                      </a>
+
+                      <div className="relative py-2">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                          <span className="bg-brand-dark px-4 text-gray-500">Or use GPay API</span>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex justify-center">
+                        <GooglePayButton
+                          environment="TEST"
+                          buttonColor="black"
+                          buttonType="buy"
+                          paymentRequest={{
+                            apiVersion: 2,
+                            apiVersionMinor: 0,
+                            allowedPaymentMethods: [
+                              {
+                                type: 'CARD',
+                                parameters: {
+                                  allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                                  allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                                },
+                                tokenizationSpecification: {
+                                  type: 'PAYMENT_GATEWAY',
+                                  parameters: {
+                                    gateway: 'example',
+                                    gatewayMerchantId: 'exampleGatewayMerchantId',
+                                  },
+                                },
                               },
+                            ],
+                            merchantInfo: {
+                              merchantId: '12345678901234567890',
+                              merchantName: `AimFit Store (${gpaySettings.number})`,
                             },
-                          },
-                        ],
-                        merchantInfo: {
-                          merchantId: '12345678901234567890',
-                          merchantName: 'AimFit Store',
-                        },
-                        transactionInfo: {
-                          totalPriceStatus: 'FINAL',
-                          totalPriceLabel: 'Total',
-                          totalPrice: totalPrice.toString(),
-                          currencyCode: 'INR',
-                          countryCode: 'IN',
-                        },
-                      }}
-                      onLoadPaymentData={paymentRequest => {
-                        console.log('load payment data', paymentRequest);
-                        handlePaymentComplete('google-pay');
-                      }}
-                      onError={error => {
-                        console.error('Google Pay error', error);
-                        toast.error('Google Pay failed');
-                      }}
-                      className="w-full max-w-[240px]"
-                    />
+                            transactionInfo: {
+                              totalPriceStatus: 'FINAL',
+                              totalPriceLabel: 'Total',
+                              totalPrice: totalPrice.toString(),
+                              currencyCode: 'INR',
+                              countryCode: 'IN',
+                            },
+                          }}
+                          onLoadPaymentData={paymentRequest => {
+                            console.log('load payment data', paymentRequest);
+                            handlePaymentComplete('google-pay');
+                          }}
+                          onError={error => {
+                            console.error('Google Pay error', error);
+                            toast.error('Google Pay failed');
+                          }}
+                          className="w-full max-w-[240px]"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handlePaymentComplete('google-pay')}
+                      className="w-full py-4 text-brand-accent font-black uppercase tracking-widest text-xs hover:underline"
+                    >
+                      I Have Paid via GPay
+                    </button>
                   </div>
 
                   <button 
