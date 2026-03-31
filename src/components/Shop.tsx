@@ -17,6 +17,8 @@ export default function Shop() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [initialCartStep, setInitialCartStep] = useState<'cart' | 'payment-method' | 'checkout-upi' | 'checkout-card' | 'checkout-googlepay' | 'checkout-cod' | 'delivery-address' | 'success' | 'auth-prompt'>('cart');
+  const [initialOrderId, setInitialOrderId] = useState<string | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [user, setUser] = useState<User | null>(null);
@@ -68,7 +70,16 @@ export default function Shop() {
 
   return (
     <div className="min-h-screen bg-brand-dark pt-32 pb-24">
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Cart 
+        isOpen={isCartOpen} 
+        onClose={() => {
+          setIsCartOpen(false);
+          setInitialCartStep('cart');
+          setInitialOrderId(null);
+        }} 
+        initialStep={initialCartStep}
+        initialOrderId={initialOrderId}
+      />
       <AuthDrawer isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialMode={authMode} />
       
       {/* Header Actions */}

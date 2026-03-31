@@ -64,9 +64,21 @@
         "userName": { "type": "string", "description": "The name of the user who placed the order" },
         "items": { "type": "array", "items": { "type": "object" }, "description": "The list of items purchased" },
         "totalAmount": { "type": "number", "description": "The total amount paid" },
-        "paymentMethod": { "type": "string", "description": "Payment method (e.g., upi, cod)" },
+        "paymentMethod": { "type": "string", "description": "Payment method (e.g., upi, cod, card, google-pay)" },
         "status": { "type": "string", "description": "Order status (e.g., paid, pending)" },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Order timestamp" }
+        "deliveryAddress": {
+          "type": "object",
+          "properties": {
+            "street": { "type": "string" },
+            "city": { "type": "string" },
+            "state": { "type": "string" },
+            "zip": { "type": "string" },
+            "phone": { "type": "string" }
+          },
+          "description": "The delivery address for the order"
+        },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Order timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
       },
       "required": ["userId", "userEmail", "items", "totalAmount", "paymentMethod", "status", "createdAt"]
     },
