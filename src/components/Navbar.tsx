@@ -107,13 +107,25 @@ export default function Navbar() {
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-8">
               {navLinks.map((link) => (
-                <a 
-                  key={link.name} 
-                  href={link.href} 
-                  className="hover:text-brand-accent transition-colors uppercase text-sm font-semibold"
-                >
-                  {link.name}
-                </a>
+                link.href.startsWith('/') && !link.href.includes('#') ? (
+                  <Link 
+                    key={link.name} 
+                    to={link.href} 
+                    className={`hover:text-brand-accent transition-colors uppercase text-sm font-semibold ${
+                      location.pathname === link.href ? "text-brand-accent" : ""
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ) : (
+                  <a 
+                    key={link.name} 
+                    href={link.href} 
+                    className="hover:text-brand-accent transition-colors uppercase text-sm font-semibold"
+                  >
+                    {link.name}
+                  </a>
+                )
               ))}
               <Link 
                 to="/shop" 
@@ -171,14 +183,27 @@ export default function Navbar() {
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
-              <a 
-                key={link.name} 
-                href={link.href} 
-                onClick={() => setIsOpen(false)} 
-                className="block px-3 py-4 text-base font-medium hover:bg-white/5 uppercase"
-              >
-                {link.name}
-              </a>
+              link.href.startsWith('/') && !link.href.includes('#') ? (
+                <Link 
+                  key={link.name} 
+                  to={link.href} 
+                  onClick={() => setIsOpen(false)} 
+                  className={`block px-3 py-4 text-base font-medium hover:bg-white/5 uppercase ${
+                    location.pathname === link.href ? "text-brand-accent" : ""
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ) : (
+                <a 
+                  key={link.name} 
+                  href={link.href} 
+                  onClick={() => setIsOpen(false)} 
+                  className="block px-3 py-4 text-base font-medium hover:bg-white/5 uppercase"
+                >
+                  {link.name}
+                </a>
+              )
             ))}
             <Link 
               to="/shop" 
