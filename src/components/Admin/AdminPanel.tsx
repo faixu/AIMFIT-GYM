@@ -9,8 +9,7 @@ import AdminShop from './AdminShop';
 import AdminSettings from './AdminSettings';
 import AdminOrders from './AdminOrders';
 import AdminUsers from './AdminUsers';
-import AdminVideos from './AdminVideos';
-import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList, ShieldCheck, Film } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -31,7 +30,6 @@ export default function AdminPanel() {
 
   const tabs = [
     { id: 'gallery', label: 'Gallery', icon: ImageIcon },
-    { id: 'videos', label: 'Videos', icon: Film },
     { id: 'trainers', label: 'Trainers', icon: Users },
     { id: 'shop', label: 'Shop', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: ClipboardList },
@@ -39,6 +37,12 @@ export default function AdminPanel() {
     { id: 'pricing', label: 'Pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
+
+  const handleLogout = async () => {
+    localStorage.removeItem('admin_auth');
+    await auth.signOut();
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-screen bg-brand-dark text-white flex flex-col md:flex-row">
@@ -72,7 +76,7 @@ export default function AdminPanel() {
             View Site
           </Link>
           <button 
-            onClick={() => auth.signOut()}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider text-red-500 hover:bg-red-500/10 transition-all"
           >
             <LogOut size={18} />
@@ -98,7 +102,6 @@ export default function AdminPanel() {
 
         <div className="max-w-6xl">
           {activeTab === 'gallery' && <AdminGallery />}
-          {activeTab === 'videos' && <AdminVideos />}
           {activeTab === 'trainers' && <AdminTrainers />}
           {activeTab === 'shop' && <AdminShop />}
           {activeTab === 'orders' && <AdminOrders />}

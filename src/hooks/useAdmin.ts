@@ -8,6 +8,20 @@ export function useAdmin() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Check for simple admin auth first
+    const adminAuth = localStorage.getItem('admin_auth');
+    if (adminAuth === 'true') {
+      setUser({
+        uid: 'admin',
+        displayName: 'Admin',
+        email: 'admin@aimfitgym.com',
+        photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'
+      } as User);
+      setIsAdmin(true);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       try {
         setUser(currentUser);
