@@ -10,8 +10,8 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDocFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDocFromServer } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 // Import the Firebase configuration
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -107,11 +107,8 @@ export {
   query,
   orderBy,
   getDocFromServer,
-  addDoc,
-  serverTimestamp,
-  getStorage,
   ref,
-  uploadBytesResumable,
+  uploadBytes,
   getDownloadURL,
   deleteObject
 };

@@ -1,96 +1,137 @@
 {
   "entities": {
-    "video": {
-      "title": "Video",
-      "description": "Metadata for a video in the gallery.",
+    "ContentSection": {
+      "title": "Content Section",
+      "description": "A section of the website content",
       "type": "object",
       "properties": {
-        "title": {
-          "type": "string",
-          "description": "The title of the video."
-        },
-        "description": {
-          "type": "string",
-          "description": "A short description of the video."
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL of the video file in Firebase Storage."
-        },
-        "thumbnailUrl": {
-          "type": "string",
-          "description": "The URL of the video thumbnail."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the video was uploaded."
-        },
-        "authorUid": {
-          "type": "string",
-          "description": "The UID of the admin who uploaded the video."
-        }
+        "title": { "type": "string", "description": "The title of the section" },
+        "subtitle": { "type": "string", "description": "The subtitle or description" },
+        "imageUrl": { "type": "string", "description": "Optional image URL for the section" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
       },
-      "required": ["title", "url", "createdAt", "authorUid"]
+      "required": ["title", "subtitle"]
     },
-    "user": {
-      "title": "User",
-      "description": "User profile data.",
+    "Supplement": {
+      "title": "Supplement",
+      "description": "A supplement product for sale",
       "type": "object",
       "properties": {
-        "displayName": {
-          "type": "string",
-          "description": "The user's display name."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's email address."
-        },
-        "role": {
-          "type": "string",
-          "enum": ["admin", "user"],
-          "description": "The user's role (admin or user)."
-        }
+        "name": { "type": "string", "description": "The name of the supplement" },
+        "price": { "type": "number", "description": "The price of the supplement" },
+        "description": { "type": "string", "description": "A description of the supplement" },
+        "image": { "type": "string", "description": "Base64 or URL of the supplement image" },
+        "category": { "type": "string", "description": "Category (e.g., Protein, Pre-workout)" },
+        "inStock": { "type": "boolean", "description": "Whether the supplement is in stock" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
       },
-      "required": ["displayName", "email", "role"]
+      "required": ["name", "price", "description", "image"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global website settings",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "aboutTitle": { "type": "string" },
+        "aboutSubtitle": { "type": "string" },
+        "aboutDescription": { "type": "string" },
+        "aboutYears": { "type": "string" },
+        "servicesTitle": { "type": "string" },
+        "servicesSubtitle": { "type": "string" },
+        "whyChooseTitle": { "type": "string" },
+        "whyChooseSubtitle": { "type": "string" },
+        "socialProofTitle": { "type": "string" },
+        "socialProofSubtitle": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactAddress": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "gpayNumber": { "type": "string", "description": "The phone number for Google Pay" },
+        "gpayUpiId": { "type": "string", "description": "The UPI ID for Google Pay" },
+        "instagramUrl": { "type": "string" },
+        "facebookUrl": { "type": "string" },
+        "upiQrCode": { "type": "string", "description": "Base64 string of the UPI QR code" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order for supplements",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who placed the order" },
+        "userEmail": { "type": "string", "description": "The email of the user who placed the order" },
+        "userName": { "type": "string", "description": "The name of the user who placed the order" },
+        "items": { "type": "array", "items": { "type": "object" }, "description": "The list of items purchased" },
+        "totalAmount": { "type": "number", "description": "The total amount paid" },
+        "paymentMethod": { "type": "string", "description": "Payment method (e.g., upi, cod, card, google-pay)" },
+        "status": { "type": "string", "description": "Order status (e.g., paid, pending)" },
+        "deliveryAddress": {
+          "type": "object",
+          "properties": {
+            "street": { "type": "string" },
+            "city": { "type": "string" },
+            "state": { "type": "string" },
+            "zip": { "type": "string" },
+            "phone": { "type": "string" }
+          },
+          "description": "The delivery address for the order"
+        },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Order timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["userId", "userEmail", "items", "totalAmount", "paymentMethod", "status", "createdAt"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "A video for the gallery",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the video" },
+        "url": { "type": "string", "description": "The URL of the video file" },
+        "thumbnailUrl": { "type": "string", "description": "Optional thumbnail image URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["title", "url", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "The user's email address" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "The user's role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "User creation timestamp" }
+      },
+      "required": ["email", "role"]
     }
   },
   "firestore": {
-    "/videos/{videoId}": {
-      "schema": "video",
-      "description": "Collection of videos."
-    },
     "/users/{userId}": {
-      "schema": "user",
-      "description": "Collection of user profiles."
+      "schema": "User",
+      "description": "User profiles and roles"
     },
-    "/gallery/{id}": {
-      "schema": "object",
-      "description": "Gallery images."
+    "/siteContent/{sectionId}": {
+      "schema": "ContentSection",
+      "description": "Dynamic content for various website sections"
     },
-    "/trainers/{id}": {
-      "schema": "object",
-      "description": "Trainer profiles."
+    "/supplements/{supplementId}": {
+      "schema": "Supplement",
+      "description": "Supplements available for purchase"
     },
-    "/pricing/{id}": {
-      "schema": "object",
-      "description": "Pricing plans."
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global website settings"
     },
-    "/contact/{id}": {
-      "schema": "object",
-      "description": "Contact information."
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
     },
-    "/settings/{id}": {
-      "schema": "object",
-      "description": "Site settings."
-    },
-    "/supplements/{id}": {
-      "schema": "object",
-      "description": "Supplements."
-    },
-    "/orders/{id}": {
-      "schema": "object",
-      "description": "Customer orders."
+    "/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Videos for the gallery"
     }
   }
 }

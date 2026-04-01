@@ -6,6 +6,7 @@ import SocialProof from "./components/SocialProof";
 import About from "./components/About";
 import Services from "./components/Services";
 import Gallery from "./components/Gallery";
+import VideoGallery from "./components/VideoGallery";
 import Pricing from "./components/Pricing";
 import Trainers from "./components/Trainers";
 import WhyChooseUs from "./components/WhyChooseUs";
@@ -18,8 +19,6 @@ import AdminPanel from "./components/Admin/AdminPanel";
 import Shop from "./components/Shop";
 import ShopAuth from "./components/Shop/ShopAuth";
 import { CartProvider } from "./context/CartContext";
-import { AuthProvider } from "./context/AuthContext";
-import VideoGallery from "./components/VideoGallery/VideoGallery";
 
 function MainSite() {
   return (
@@ -31,6 +30,7 @@ function MainSite() {
         <About />
         <Services />
         <Gallery />
+        <VideoGallery />
         <WhyChooseUs />
         <Pricing />
         <Trainers />
@@ -46,21 +46,18 @@ function MainSite() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <Toaster position="top-center" richColors theme="dark" />
-          <Routes>
-            <Route path="/" element={<MainSite />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/auth" element={<ShopAuth />} />
-            <Route path="/shop/login" element={<ShopAuth initialMode="login" />} />
-            <Route path="/shop/register" element={<ShopAuth initialMode="register" />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/videos" element={<VideoGallery />} />
-          </Routes>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider>
+      <Router>
+        <Toaster position="top-center" richColors theme="dark" />
+        <Routes>
+          <Route path="/" element={<MainSite />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop/auth" element={<ShopAuth />} />
+          <Route path="/shop/login" element={<ShopAuth initialMode="login" />} />
+          <Route path="/shop/register" element={<ShopAuth initialMode="register" />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </Router>
+    </CartProvider>
   );
 }

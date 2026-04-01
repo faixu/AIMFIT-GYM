@@ -3,13 +3,14 @@ import { auth } from '../../lib/firebase';
 import { useAdmin } from '../../hooks/useAdmin';
 import AdminLogin from './AdminLogin';
 import AdminGallery from './AdminGallery';
+import AdminVideos from './AdminVideos';
 import AdminTrainers from './AdminTrainers';
 import AdminPricing from './AdminPricing';
 import AdminShop from './AdminShop';
 import AdminSettings from './AdminSettings';
 import AdminOrders from './AdminOrders';
 import AdminUsers from './AdminUsers';
-import { LayoutDashboard, Image as ImageIcon, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, Video, Users, CreditCard, LogOut, Home, Settings as SettingsIcon, ShoppingBag, ClipboardList, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -30,6 +31,7 @@ export default function AdminPanel() {
 
   const tabs = [
     { id: 'gallery', label: 'Gallery', icon: ImageIcon },
+    { id: 'videos', label: 'Videos', icon: Video },
     { id: 'trainers', label: 'Trainers', icon: Users },
     { id: 'shop', label: 'Shop', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: ClipboardList },
@@ -102,6 +104,7 @@ export default function AdminPanel() {
 
         <div className="max-w-6xl">
           {activeTab === 'gallery' && <AdminGallery />}
+          {activeTab === 'videos' && <AdminVideos />}
           {activeTab === 'trainers' && <AdminTrainers />}
           {activeTab === 'shop' && <AdminShop />}
           {activeTab === 'orders' && <AdminOrders />}
