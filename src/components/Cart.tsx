@@ -1,25 +1,68 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn, ArrowRight, CreditCard } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, QrCode, CheckCircle2, AlertCircle, User as UserIcon, LogIn, ArrowRight, CreditCard, MapPin, Smartphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { db, auth } from '../lib/firebase';
-import { doc, onSnapshot, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import AuthDrawer from './AuthDrawer';
 import { toast } from 'sonner';
+import GooglePayButton from '@google-pay/button-react';
 
-export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function Cart({ 
+  isOpen, 
+  onClose, 
+  initialStep = 'cart',
+  initialOrderId = null
+}: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  initialStep?: 'cart' | 'payment-method' | 'checkout-upi' | 'checkout-card' | 'checkout-googlepay' | 'checkout-cod' | 'delivery-address' | 'success' | 'auth-prompt';
+  initialOrderId?: string | null;
+}) {
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<'cart' | 'payment-method' | 'checkout-upi' | 'checkout-cod' | 'success' | 'auth-prompt'>('cart');
+  const [step, setStep] = useState(initialStep);
   const [upiQrCode, setUpiQrCode] = useState<string | null>(null);
+  const [gpaySettings, setGpaySettings] = useState({ number: '', upiId: '' });
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
+  const [orderId, setOrderId] = useState<string | null>(initialOrderId);
+  const [address, setAddress] = useState({
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: ''
+  });
+
+  const [cardDetails, setCardDetails] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  });
+
+  useEffect(() => {
+    if (initialStep !== 'cart') {
+      setStep(initialStep);
+    }
+  }, [initialStep]);
+
+  useEffect(() => {
+    if (initialOrderId) {
+      setOrderId(initialOrderId);
+    }
+  }, [initialOrderId]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'site'), (doc) => {
       if (doc.exists()) {
-        setUpiQrCode(doc.data().upiQrCode || null);
+        const data = doc.data();
+        setUpiQrCode(data.upiQrCode || null);
+        setGpaySettings({
+          number: data.gpayNumber || '+91 96224 27566',
+          upiId: data.gpayUpiId || '9622427566@okbizaxis'
+        });
       }
     });
     return () => unsubscribe();
@@ -36,18 +79,13 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     setStep('payment-method');
   };
 
-  const handleAuthSuccess = () => {
-    setIsAuthDrawerOpen(false);
-    setStep('payment-method');
-  };
-
-  const handlePaymentComplete = async (method: 'upi' | 'cod') => {
+  const handlePaymentComplete = async (method: 'upi' | 'cod' | 'card' | 'google-pay') => {
     if (!auth.currentUser) return;
     
     setIsProcessing(true);
     try {
       // Save order to Firestore
-      await addDoc(collection(db, 'orders'), {
+      const docRef = await addDoc(collection(db, 'orders'), {
         userId: auth.currentUser.uid,
         userEmail: auth.currentUser.email,
         userName: auth.currentUser.displayName || 'Customer',
@@ -60,22 +98,44 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
         })),
         totalAmount: totalPrice,
         paymentMethod: method,
-        status: method === 'upi' ? 'paid' : 'pending', // COD starts as pending
+        status: method === 'cod' ? 'pending' : 'paid',
         createdAt: serverTimestamp()
       });
 
+      setOrderId(docRef.id);
       setStep('success');
-      setTimeout(() => {
-        clearCart();
-        onClose();
-        setStep('cart');
-      }, 3000);
     } catch (error) {
       console.error('Error saving order:', error);
       toast.error('Failed to process order. Please try again.');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleAddressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderId) return;
+    setIsProcessing(true);
+    try {
+      await updateDoc(doc(db, 'orders', orderId), {
+        deliveryAddress: address,
+        updatedAt: serverTimestamp()
+      });
+      toast.success('Address saved! Order finalized.');
+      clearCart();
+      onClose();
+      setStep('cart');
+    } catch (error) {
+      console.error('Error saving address:', error);
+      toast.error('Failed to save address');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthDrawerOpen(false);
+    setStep('payment-method');
   };
 
   return (
@@ -225,6 +285,38 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                   
                   <div className="w-full space-y-4">
                     <button 
+                      onClick={() => setStep('checkout-googlepay')}
+                      className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:border-brand-accent transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-accent/10 rounded-2xl flex items-center justify-center text-brand-accent">
+                          <Smartphone size={24} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold uppercase tracking-tight">Google Pay</p>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Fast & Secure</p>
+                        </div>
+                      </div>
+                      <ArrowRight size={20} className="text-gray-600 group-hover:text-brand-accent transition-colors" />
+                    </button>
+
+                    <button 
+                      onClick={() => setStep('checkout-card')}
+                      className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:border-brand-accent transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-brand-accent/10 rounded-2xl flex items-center justify-center text-brand-accent">
+                          <CreditCard size={24} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold uppercase tracking-tight">Card Payment</p>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Credit / Debit Card</p>
+                        </div>
+                      </div>
+                      <ArrowRight size={20} className="text-gray-600 group-hover:text-brand-accent transition-colors" />
+                    </button>
+
+                    <button 
                       onClick={() => setStep('checkout-upi')}
                       className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:border-brand-accent transition-all group"
                     >
@@ -233,8 +325,8 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                           <QrCode size={24} />
                         </div>
                         <div className="text-left">
-                          <p className="font-bold uppercase tracking-tight">Online Payment</p>
-                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">UPI / Scanner</p>
+                          <p className="font-bold uppercase tracking-tight">UPI Payment</p>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Scan & Pay</p>
                         </div>
                       </div>
                       <ArrowRight size={20} className="text-gray-600 group-hover:text-brand-accent transition-colors" />
@@ -263,6 +355,197 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                       Back to Cart
                     </button>
                   </div>
+                </div>
+              )}
+
+              {step === 'checkout-googlepay' && (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-8 p-4">
+                  <div className="w-24 h-24 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent">
+                    <Smartphone size={48} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Google Pay</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Pay <span className="text-brand-accent font-black">₹{totalPrice}</span> to <span className="text-white font-bold">{gpaySettings.number}</span>
+                    </p>
+                  </div>
+
+                  <div className="w-full space-y-4">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left">
+                      <p className="text-[10px] uppercase font-black text-brand-accent mb-1 tracking-widest">Payment Details</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-400 font-bold uppercase">UPI ID</span>
+                        <span className="text-xs text-white font-mono">{gpaySettings.upiId}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <a 
+                        href={`upi://pay?pa=${gpaySettings.upiId}&pn=AimFit&am=${totalPrice}&cu=INR`}
+                        className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 flex items-center justify-center gap-3"
+                      >
+                        <Smartphone size={20} />
+                        Pay via GPay App
+                      </a>
+
+                      <div className="relative py-2">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                          <span className="bg-brand-dark px-4 text-gray-500">Or use GPay API</span>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex justify-center">
+                        <GooglePayButton
+                          environment="TEST"
+                          buttonColor="black"
+                          buttonType="buy"
+                          paymentRequest={{
+                            apiVersion: 2,
+                            apiVersionMinor: 0,
+                            allowedPaymentMethods: [
+                              {
+                                type: 'CARD',
+                                parameters: {
+                                  allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                                  allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                                },
+                                tokenizationSpecification: {
+                                  type: 'PAYMENT_GATEWAY',
+                                  parameters: {
+                                    gateway: 'example',
+                                    gatewayMerchantId: 'exampleGatewayMerchantId',
+                                  },
+                                },
+                              },
+                            ],
+                            merchantInfo: {
+                              merchantId: '12345678901234567890',
+                              merchantName: `AimFit Store (${gpaySettings.number})`,
+                            },
+                            transactionInfo: {
+                              totalPriceStatus: 'FINAL',
+                              totalPriceLabel: 'Total',
+                              totalPrice: totalPrice.toString(),
+                              currencyCode: 'INR',
+                              countryCode: 'IN',
+                            },
+                          }}
+                          onLoadPaymentData={paymentRequest => {
+                            console.log('load payment data', paymentRequest);
+                            handlePaymentComplete('google-pay');
+                          }}
+                          onError={error => {
+                            console.error('Google Pay error', error);
+                            toast.error('Google Pay failed');
+                          }}
+                          className="w-full max-w-[240px]"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handlePaymentComplete('google-pay')}
+                      className="w-full py-4 text-brand-accent font-black uppercase tracking-widest text-xs hover:underline"
+                    >
+                      I Have Paid via GPay
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={() => setStep('payment-method')}
+                    className="text-gray-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Change Payment Method
+                  </button>
+                </div>
+              )}
+
+              {step === 'checkout-card' && (
+                <div className="space-y-8">
+                  <div className="text-center space-y-2">
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Card Details</h3>
+                    <p className="text-sm text-gray-400">Enter your card information to pay <span className="text-brand-accent font-black">₹{totalPrice}</span></p>
+                  </div>
+
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handlePaymentComplete('card');
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Card Number</label>
+                      <input
+                        type="text"
+                        placeholder="0000 0000 0000 0000"
+                        value={cardDetails.number}
+                        onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Expiry</label>
+                        <input
+                          type="text"
+                          placeholder="MM/YY"
+                          value={cardDetails.expiry}
+                          onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">CVV</label>
+                        <input
+                          type="password"
+                          placeholder="***"
+                          value={cardDetails.cvv}
+                          onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Cardholder Name</label>
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        value={cardDetails.name}
+                        onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white"
+                        required
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={isProcessing}
+                      className="btn-primary w-full py-5 text-lg shadow-xl shadow-brand-accent/20 flex items-center justify-center gap-3"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        `Pay ₹${totalPrice}`
+                      )}
+                    </button>
+                  </form>
+
+                  <button 
+                    onClick={() => setStep('payment-method')}
+                    className="block w-full text-center text-gray-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    Change Payment Method
+                  </button>
                 </div>
               )}
 
@@ -370,9 +653,105 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                     <CheckCircle2 size={64} />
                   </motion.div>
                   <div className="space-y-2">
-                    <h3 className="text-3xl font-black uppercase tracking-tight">Order Placed!</h3>
-                    <p className="text-gray-400">Thank you for your purchase. Your order is being processed.</p>
+                    <h3 className="text-3xl font-black uppercase tracking-tight">Order Successful!</h3>
+                    <p className="text-gray-400">Thank you for your purchase. Now, please provide your delivery address.</p>
                   </div>
+                  <button 
+                    onClick={() => setStep('delivery-address')}
+                    className="btn-primary w-full py-4 flex items-center justify-center gap-3"
+                  >
+                    Add Delivery Address
+                    <ArrowRight size={20} />
+                  </button>
+                </div>
+              )}
+
+              {step === 'delivery-address' && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-2">
+                    <div className="w-16 h-16 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent mx-auto">
+                      <MapPin size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black uppercase tracking-tight italic">Delivery Address</h3>
+                    <p className="text-gray-400 text-xs">Where should we send your fitness fuel?</p>
+                  </div>
+
+                  <form onSubmit={handleAddressSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-2">Street Address</label>
+                      <input 
+                        type="text"
+                        required
+                        value={address.street}
+                        onChange={(e) => setAddress({...address, street: e.target.value})}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-brand-accent outline-none text-white text-sm"
+                        placeholder="123 Gym Street"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-2">City</label>
+                        <input 
+                          type="text"
+                          required
+                          value={address.city}
+                          onChange={(e) => setAddress({...address, city: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-brand-accent outline-none text-white text-sm"
+                          placeholder="Mumbai"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-2">State</label>
+                        <input 
+                          type="text"
+                          required
+                          value={address.state}
+                          onChange={(e) => setAddress({...address, state: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-brand-accent outline-none text-white text-sm"
+                          placeholder="Maharashtra"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-2">ZIP Code</label>
+                        <input 
+                          type="text"
+                          required
+                          value={address.zip}
+                          onChange={(e) => setAddress({...address, zip: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-brand-accent outline-none text-white text-sm"
+                          placeholder="400001"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-2">Phone</label>
+                        <input 
+                          type="tel"
+                          required
+                          value={address.phone}
+                          onChange={(e) => setAddress({...address, phone: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-brand-accent outline-none text-white text-sm"
+                          placeholder="+91 9876543210"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={isProcessing}
+                      className="btn-primary w-full py-5 mt-4 flex items-center justify-center gap-3"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Finalize Order'
+                      )}
+                    </button>
+                  </form>
                 </div>
               )}
             </div>

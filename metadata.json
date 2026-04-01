@@ -1,5 +1,5 @@
 {
-  "name": "aimfitgym",
-  "description": "aimfit gym",
+  "name": "Admin Video Gallery",
+  "description": "A video gallery where an admin can upload and manage short videos.",
   "requestFramePermissions": []
 }

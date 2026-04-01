@@ -10,7 +10,8 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDocFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
 // Import the Firebase configuration
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -19,6 +20,7 @@ import firebaseConfig from '../../firebase-applet-config.json';
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Error Handling Spec for Firestore Operations
@@ -104,5 +106,12 @@ export {
   onSnapshot,
   query,
   orderBy,
-  getDocFromServer
+  getDocFromServer,
+  addDoc,
+  serverTimestamp,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject
 };

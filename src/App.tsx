@@ -18,6 +18,8 @@ import AdminPanel from "./components/Admin/AdminPanel";
 import Shop from "./components/Shop";
 import ShopAuth from "./components/Shop/ShopAuth";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
+import VideoGallery from "./components/VideoGallery/VideoGallery";
 
 function MainSite() {
   return (
@@ -44,18 +46,21 @@ function MainSite() {
 
 export default function App() {
   return (
-    <CartProvider>
-      <Router>
-        <Toaster position="top-center" richColors theme="dark" />
-        <Routes>
-          <Route path="/" element={<MainSite />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/shop/auth" element={<ShopAuth />} />
-          <Route path="/shop/login" element={<ShopAuth initialMode="login" />} />
-          <Route path="/shop/register" element={<ShopAuth initialMode="register" />} />
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </Router>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <Router>
+          <Toaster position="top-center" richColors theme="dark" />
+          <Routes>
+            <Route path="/" element={<MainSite />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/auth" element={<ShopAuth />} />
+            <Route path="/shop/login" element={<ShopAuth initialMode="login" />} />
+            <Route path="/shop/register" element={<ShopAuth initialMode="register" />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/videos" element={<VideoGallery />} />
+          </Routes>
+        </Router>
+      </CartProvider>
+    </AuthProvider>
   );
 }
