@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, X, Video as VideoIcon } from 'lucide-react';
-import { db, onSnapshot, collection, query, orderBy } from '../lib/firebase';
+import { Play, X, Video as VideoIcon, Plus, Trash2 } from 'lucide-react';
+import { db, storage, onSnapshot, collection, query, orderBy, deleteDoc, doc, ref, deleteObject } from '../lib/firebase';
+import { useAdmin } from '../hooks/useAdmin';
+import VideoUpload from './VideoGallery/VideoUpload';
+import { toast } from 'sonner';
 
 interface VideoData {
   id: string;
@@ -13,8 +16,10 @@ interface VideoData {
 }
 
 export default function VideoGallery() {
+  const { isAdmin } = useAdmin();
   const [videos, setVideos] = useState<VideoData[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,19 +35,51 @@ export default function VideoGallery() {
     return () => unsubscribe();
   }, []);
 
+  const handleDelete = async (e: React.MouseEvent, video: VideoData) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, 'videos', video.id));
+      
+      // Delete from Storage (if it's a storage URL)
+      if (video.url.includes('firebasestorage.googleapis.com')) {
+        const videoRef = ref(storage, video.url);
+        await deleteObject(videoRef);
+      }
+      
+      toast.success("Video deleted successfully");
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      toast.error("Failed to delete video");
+    }
+  };
+
   if (loading) return null;
   if (videos.length === 0) return null;
 
   return (
     <section id="videos" className="py-24 bg-brand-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 relative">
           <h2 className="text-4xl md:text-5xl mb-4 uppercase font-black italic">
             Video <span className="text-brand-accent">Gallery</span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Experience the energy and atmosphere of AimFit through our video collection.
           </p>
+          
+          {isAdmin && (
+            <div className="mt-8 flex justify-center">
+              <button 
+                onClick={() => setShowUpload(true)}
+                className="btn-primary flex items-center gap-2 px-6 py-3"
+              >
+                <Plus size={20} /> Upload Video
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -73,7 +110,18 @@ export default function VideoGallery() {
                   <Play className="text-white fill-white ml-1" size={24} />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-                  <h3 className="text-xl font-black uppercase tracking-tight text-white mb-1">{video.title}</h3>
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-xl font-black uppercase tracking-tight text-white">{video.title}</h3>
+                    {isAdmin && (
+                      <button 
+                        onClick={(e) => handleDelete(e, video)}
+                        className="text-white/50 hover:text-brand-accent transition-colors p-1"
+                        title="Delete Video"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
                   {video.description && (
                     <p className="text-gray-300 text-xs line-clamp-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {video.description}
@@ -129,6 +177,13 @@ export default function VideoGallery() {
                 </div>
               </motion.div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Upload Modal */}
+        <AnimatePresence>
+          {showUpload && (
+            <VideoUpload onClose={() => setShowUpload(false)} />
           )}
         </AnimatePresence>
       </div>

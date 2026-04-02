@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage, collection, query, orderBy, onSnapshot, deleteDoc, doc, ref, deleteObject } from '../../lib/firebase';
-import { useAuth } from '../../context/AuthContext';
-import { Play, Trash2, Plus, LogIn, LogOut } from 'lucide-react';
+import { useAdmin } from '../../hooks/useAdmin';
+import { Play, Trash2, Plus, LogIn, LogOut, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import VideoUpload from './VideoUpload';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
+import { auth } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
 
 interface Video {
   id: string;
@@ -19,7 +22,7 @@ interface Video {
 }
 
 const VideoGallery: React.FC = () => {
-  const { user, role, login, logout } = useAuth();
+  const { isAdmin, user, loading: adminLoading } = useAdmin();
   const [videos, setVideos] = useState<Video[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -39,6 +42,15 @@ const VideoGallery: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    if (localStorage.getItem('admin_auth')) {
+      localStorage.removeItem('admin_auth');
+      window.location.reload();
+    } else {
+      await signOut(auth);
+    }
+  };
 
   const handleDelete = async (video: Video) => {
     if (!window.confirm("Are you sure you want to delete this video?")) return;
@@ -60,6 +72,8 @@ const VideoGallery: React.FC = () => {
     }
   };
 
+  if (adminLoading) return null;
+
   return (
     <div className="min-h-screen bg-brand-dark text-white">
       <Navbar />
@@ -68,35 +82,34 @@ const VideoGallery: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
             <div>
-              <h1 className="text-4xl md:text-6xl mb-2">Video Gallery</h1>
+              <h1 className="text-4xl md:text-6xl mb-2 font-black uppercase italic">Video <span className="text-brand-accent">Gallery</span></h1>
               <p className="text-gray-400">Watch our latest gym highlights and tutorials</p>
             </div>
             
             <div className="flex items-center gap-4">
-              {user ? (
+              {isAdmin ? (
                 <>
-                  {role === 'admin' && (
-                    <button 
-                      onClick={() => setShowUpload(true)}
-                      className="btn-primary flex items-center gap-2"
-                    >
-                      <Plus size={20} /> Upload Video
-                    </button>
-                  )}
                   <button 
-                    onClick={logout}
-                    className="btn-secondary flex items-center gap-2"
+                    onClick={() => setShowUpload(true)}
+                    className="btn-primary flex items-center gap-2 px-6 py-3"
                   >
-                    <LogOut size={20} /> Logout
+                    <Plus size={20} /> Upload Video
+                  </button>
+                  <button 
+                    onClick={handleLogout}
+                    className="bg-white/5 hover:bg-white/10 border border-white/10 p-3 rounded-xl transition-all"
+                    title="Logout"
+                  >
+                    <LogOut size={20} />
                   </button>
                 </>
               ) : (
-                <button 
-                  onClick={login}
-                  className="btn-primary flex items-center gap-2"
+                <Link 
+                  to="/admin"
+                  className="btn-primary flex items-center gap-2 px-6 py-3"
                 >
-                  <LogIn size={20} /> Admin Login
-                </button>
+                  <Shield size={20} /> Admin Access
+                </Link>
               )}
             </div>
           </div>
@@ -133,7 +146,7 @@ const VideoGallery: React.FC = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-xl font-bold">{video.title}</h3>
-                    {role === 'admin' && (
+                    {isAdmin && (
                       <button 
                         onClick={() => handleDelete(video)}
                         className="text-gray-500 hover:text-red-500 transition-colors"
