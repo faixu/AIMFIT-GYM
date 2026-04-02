@@ -14,6 +14,15 @@ export default function ShopAuth({ initialMode = 'login' }: { initialMode?: 'log
   const navigate = useNavigate();
 
   useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigate('/shop');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
     setIsLogin(initialMode === 'login');
   }, [initialMode]);
 
@@ -65,10 +74,16 @@ export default function ShopAuth({ initialMode = 'login' }: { initialMode?: 'log
         className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-10">
-          <Link to="/shop" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-accent transition-colors mb-6 uppercase text-[10px] font-black tracking-[0.2em]">
-            <ArrowLeft size={14} />
-            Back to Shop
-          </Link>
+          <div className="flex justify-center gap-4 mb-6">
+            <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-accent transition-colors uppercase text-[10px] font-black tracking-[0.2em]">
+              <ArrowLeft size={14} />
+              Home
+            </Link>
+            <Link to="/shop" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-accent transition-colors uppercase text-[10px] font-black tracking-[0.2em]">
+              <ShoppingBag size={14} />
+              Shop
+            </Link>
+          </div>
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-brand-accent/10 rounded-2xl flex items-center justify-center">
               <ShoppingBag size={32} className="text-brand-accent" />

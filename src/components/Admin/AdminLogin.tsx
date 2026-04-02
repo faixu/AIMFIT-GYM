@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ShieldAlert, LogOut, User as UserIcon, Lock, ArrowRight } from 'lucide-react';
+import { ShieldAlert, LogOut, User as UserIcon, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -35,7 +36,12 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-dark p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-brand-dark p-4">
+      <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-accent transition-colors mb-8 uppercase text-[10px] font-black tracking-[0.2em]">
+        <ArrowLeft size={14} />
+        Back to Website
+      </Link>
+      
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
