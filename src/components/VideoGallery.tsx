@@ -6,6 +6,7 @@ import { db, onSnapshot, collection, query, orderBy } from '../lib/firebase';
 interface VideoData {
   id: string;
   title: string;
+  description?: string;
   url: string;
   thumbnailUrl?: string;
   createdAt: string;
@@ -71,8 +72,13 @@ export default function VideoGallery() {
                 <div className="w-16 h-16 bg-brand-accent rounded-full flex items-center justify-center shadow-xl shadow-brand-accent/40 group-hover:scale-110 transition-transform">
                   <Play className="text-white fill-white ml-1" size={24} />
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                  <h3 className="text-xl font-black uppercase tracking-tight text-white">{video.title}</h3>
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                  <h3 className="text-xl font-black uppercase tracking-tight text-white mb-1">{video.title}</h3>
+                  {video.description && (
+                    <p className="text-gray-300 text-xs line-clamp-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {video.description}
+                    </p>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -109,6 +115,18 @@ export default function VideoGallery() {
                   autoPlay 
                   className="w-full h-full"
                 />
+                
+                {/* Info Overlay in Lightbox */}
+                <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
+                  <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mb-2">
+                    {selectedVideo.title}
+                  </h3>
+                  {selectedVideo.description && (
+                    <p className="text-gray-300 text-sm md:text-base max-w-3xl leading-relaxed">
+                      {selectedVideo.description}
+                    </p>
+                  )}
+                </div>
               </motion.div>
             </motion.div>
           )}

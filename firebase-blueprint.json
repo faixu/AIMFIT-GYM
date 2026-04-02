@@ -90,6 +90,7 @@
       "type": "object",
       "properties": {
         "title": { "type": "string", "description": "The title of the video" },
+        "description": { "type": "string", "description": "A description of the video" },
         "url": { "type": "string", "description": "The URL of the video file" },
         "thumbnailUrl": { "type": "string", "description": "Optional thumbnail image URL" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }

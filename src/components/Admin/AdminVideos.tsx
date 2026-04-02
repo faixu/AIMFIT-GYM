@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 interface VideoData {
   id: string;
   title: string;
+  description?: string;
   url: string;
   thumbnailUrl?: string;
   createdAt: string;
@@ -19,6 +20,7 @@ export default function AdminVideos() {
   
   // Form state
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
@@ -61,6 +63,7 @@ export default function AdminVideos() {
       const videoId = doc(collection(db, 'videos')).id;
       await setDoc(doc(db, 'videos', videoId), {
         title,
+        description,
         url: videoUrl,
         thumbnailUrl: thumbnailUrl || null,
         createdAt: new Date().toISOString()
@@ -95,6 +98,7 @@ export default function AdminVideos() {
 
   const resetForm = () => {
     setTitle('');
+    setDescription('');
     setVideoFile(null);
     setThumbnailFile(null);
   };
@@ -176,6 +180,16 @@ export default function AdminVideos() {
                   placeholder="e.g., Gym Motivation 2024"
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell us about this video..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-brand-accent outline-none transition-all text-white min-h-[100px] resize-none"
                 />
               </div>
 
