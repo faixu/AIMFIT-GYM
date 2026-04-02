@@ -97,7 +97,9 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ onClose }) => {
         <form onSubmit={handleUpload} className="p-8 space-y-6">
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${file ? 'border-green-500/50 bg-green-500/5' : 'border-white/10 hover:border-brand-accent/50 hover:bg-white/5'}`}
+            className={`aspect-video rounded-3xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden ${
+              file ? 'border-brand-accent bg-brand-accent/5' : 'border-white/10 hover:border-brand-accent/50 hover:bg-white/5'
+            }`}
           >
             <input 
               type="file" 
@@ -107,22 +109,18 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ onClose }) => {
               className="hidden" 
             />
             {file ? (
-              <>
-                <CheckCircle2 size={48} className="text-green-500" />
+              <div className="flex flex-col items-center justify-center gap-3">
+                <CheckCircle2 size={48} className="text-brand-accent" />
                 <div className="text-center">
-                  <p className="font-medium text-green-500">{file.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-brand-accent">{file.name}</p>
+                  <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                 </div>
-              </>
+              </div>
             ) : (
               <>
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                  <Upload size={32} className="text-gray-400" />
-                </div>
-                <div className="text-center">
-                  <p className="font-medium">Click to select or drag and drop</p>
-                  <p className="text-xs text-gray-500 mt-1">MP4, WebM or Ogg (Max 100MB)</p>
-                </div>
+                <Upload size={48} className="text-gray-600 mb-4" />
+                <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Click to Select Video</p>
+                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest">Max 100MB (MP4, WebM)</p>
               </>
             )}
           </div>
