@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Maximize2, X, Plus, Trash2 } from "lucide-react";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { ref, deleteObject } from "firebase/storage";
+import { storage } from "../lib/firebase";
 import { useAdmin } from "../hooks/useAdmin";
 import ImageUpload from "./Admin/ImageUpload";
 import { toast } from "sonner";
@@ -31,11 +33,19 @@ export default function Gallery() {
     return () => unsubscribe();
   }, []);
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string, imageUrl: string) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this image?")) return;
     try {
+      // Delete from Firestore
       await deleteDoc(doc(db, 'gallery', id));
+      
+      // Delete from Storage if it's a storage URL
+      if (imageUrl.includes('firebasestorage.googleapis.com')) {
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef);
+      }
+      
       toast.success("Image deleted successfully");
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `gallery/${id}`);
@@ -112,7 +122,7 @@ export default function Gallery() {
                   
                   {isAdmin && (
                     <button 
-                      onClick={(e) => handleDelete(e, img.id)}
+                      onClick={(e) => handleDelete(e, img.id, img.image)}
                       className="absolute top-4 right-4 w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
                     >
                       <Trash2 size={18} />

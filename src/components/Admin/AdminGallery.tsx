@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { db, storage, ref, uploadBytesResumable, getDownloadURL, deleteObject, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { Trash2, Plus, Image as ImageIcon, Upload, X } from 'lucide-react';
+import { Trash2, Plus, Image as ImageIcon, Upload, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import ConfirmationModal from './ConfirmationModal';
@@ -11,7 +11,9 @@ export default function AdminGallery() {
   const [newImage, setNewImage] = useState({ title: '', category: 'Training', image: '' });
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null; imageUrl: string | null }>({ isOpen: false, id: null, imageUrl: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,50 +27,78 @@ export default function AdminGallery() {
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 1024 * 1024) { // 1MB limit for Firestore
-        toast.error('Image size must be less than 1MB');
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error('Image size must be less than 10MB');
         return;
       }
+      setFile(selectedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setPreview(base64String);
-        setNewImage({ ...newImage, image: base64String });
+        setPreview(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(selectedFile);
     }
   };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newImage.image) {
-      toast.error('Please select an image');
+    if (!file || !newImage.title) {
+      toast.error('Please select an image and provide a title');
       return;
     }
     setLoading(true);
-    try {
-      await addDoc(collection(db, 'gallery'), {
-        ...newImage,
-        createdAt: serverTimestamp()
-      });
-      setNewImage({ title: '', category: 'Training', image: '' });
-      setPreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      toast.success('Image uploaded successfully!');
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'gallery');
-    } finally {
-      setLoading(false);
-    }
+    const storageRef = ref(storage, `gallery/${Date.now()}_${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(p);
+      }, 
+      (error) => {
+        console.error("Upload error:", error);
+        toast.error("Upload failed");
+        setLoading(false);
+      }, 
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          await addDoc(collection(db, 'gallery'), {
+            title: newImage.title,
+            category: newImage.category,
+            image: downloadURL,
+            createdAt: serverTimestamp()
+          });
+          setNewImage({ title: '', category: 'Training', image: '' });
+          setPreview(null);
+          setFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          toast.success('Image uploaded successfully!');
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, 'gallery');
+        } finally {
+          setLoading(false);
+        }
+      }
+    );
   };
 
   const handleDelete = async () => {
     if (!deleteModal.id) return;
     try {
+      // Delete from Firestore
       await deleteDoc(doc(db, 'gallery', deleteModal.id));
-      setDeleteModal({ isOpen: false, id: null });
+      
+      // Delete from Storage if it's a storage URL
+      if (deleteModal.imageUrl && deleteModal.imageUrl.includes('firebasestorage.googleapis.com')) {
+        const imageRef = ref(storage, deleteModal.imageUrl);
+        await deleteObject(imageRef);
+      }
+      
+      setDeleteModal({ isOpen: false, id: null, imageUrl: null });
+      toast.success("Image deleted successfully");
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `gallery/${deleteModal.id}`);
     }
@@ -115,10 +145,15 @@ export default function AdminGallery() {
             </div>
             <button 
               type="submit" 
-              disabled={loading || !newImage.image}
-              className="btn-primary w-full py-5 text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-accent/20"
+              disabled={loading || !file}
+              className="btn-primary w-full py-5 text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-accent/20 flex items-center justify-center gap-2"
             >
-              {loading ? 'Uploading...' : 'Upload to Gallery'}
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Uploading ({Math.round(progress)}%)
+                </>
+              ) : 'Upload to Gallery'}
             </button>
           </div>
 
@@ -184,7 +219,7 @@ export default function AdminGallery() {
                 <p className="text-[10px] text-brand-accent font-black uppercase tracking-[0.2em]">{img.category}</p>
               </div>
               <button 
-                onClick={() => setDeleteModal({ isOpen: true, id: img.id })}
+                onClick={() => setDeleteModal({ isOpen: true, id: img.id, imageUrl: img.image })}
                 className="absolute top-4 right-4 w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center transition-all hover:scale-110 shadow-xl z-20"
               >
                 <Trash2 size={18} />
@@ -196,7 +231,7 @@ export default function AdminGallery() {
 
       <ConfirmationModal 
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onClose={() => setDeleteModal({ isOpen: false, id: null, imageUrl: null })}
         onConfirm={handleDelete}
         title="Delete Image"
         message="Are you sure you want to delete this image? This action cannot be undone."
