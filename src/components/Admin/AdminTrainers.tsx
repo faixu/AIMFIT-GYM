@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, ref, uploadBytesResumable, getDownloadURL, deleteObject } from '../../lib/firebase';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, ref, uploadBytesResumable, getDownloadURL, deleteObject, serverTimestamp } from '../../lib/firebase';
 import { Trash2, Plus, User, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -26,8 +26,8 @@ export default function AdminTrainers() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image size must be less than 5MB');
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error('Image size must be less than 10MB');
         return;
       }
       setFile(file);
@@ -64,7 +64,8 @@ export default function AdminTrainers() {
 
       await addDoc(collection(db, 'trainers'), {
         ...newTrainer,
-        image: imageUrl
+        image: imageUrl,
+        createdAt: serverTimestamp()
       });
 
       setNewTrainer({ name: '', specialty: '', bio: '', image: '' });
@@ -167,7 +168,7 @@ export default function AdminTrainers() {
                 <>
                   <Upload size={48} className="text-gray-600 mb-4" />
                   <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Select Trainer Photo</p>
-                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 1MB (JPG, PNG)</p>
+                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 10MB (JPG, PNG)</p>
                 </>
               )}
             </div>
@@ -184,6 +185,7 @@ export default function AdminTrainers() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setPreview(null);
+                  setFile(null);
                   setNewTrainer({...newTrainer, image: ''});
                 }}
                 className="absolute top-10 right-2 w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center text-white shadow-lg"

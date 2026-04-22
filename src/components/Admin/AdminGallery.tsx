@@ -17,9 +17,16 @@ export default function AdminGallery() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
+    const q = collection(db, 'gallery');
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setImages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort in memory to handle serverTimestamp pending states (null values)
+      data.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis?.() || Date.now();
+        const timeB = b.createdAt?.toMillis?.() || Date.now();
+        return timeB - timeA;
+      });
+      setImages(data);
     }, (error) => {
       console.error('Error fetching gallery:', error);
     });
@@ -171,7 +178,7 @@ export default function AdminGallery() {
                 <>
                   <Upload size={48} className="text-gray-600 mb-4" />
                   <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Click to Select Image</p>
-                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 1MB (JPG, PNG)</p>
+                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 10MB (JPG, PNG)</p>
                 </>
               )}
             </div>
@@ -188,6 +195,7 @@ export default function AdminGallery() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setPreview(null);
+                  setFile(null);
                   setNewImage({...newImage, image: ''});
                 }}
                 className="absolute top-10 right-2 w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center text-white shadow-lg"

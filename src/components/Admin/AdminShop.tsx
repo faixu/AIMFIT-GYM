@@ -34,8 +34,8 @@ export default function AdminShop() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size must be less than 5MB');
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Image size must be less than 10MB');
         return;
       }
       setFile(file);
@@ -213,7 +213,7 @@ export default function AdminShop() {
                 <>
                   <Upload size={48} className="text-gray-600 mb-4" />
                   <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Select Product Photo</p>
-                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 1MB (JPG, PNG)</p>
+                  <p className="text-[10px] text-gray-600 mt-2 uppercase">Max 10MB (JPG, PNG)</p>
                 </>
               )}
             </div>
