@@ -1,11 +1,13 @@
 import { motion } from "motion/react";
-import { Menu, X, ShoppingBag, User as UserIcon } from "lucide-react";
+import { Menu, X, ShoppingBag, User as UserIcon, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { auth, onAuthStateChanged, type User } from "../lib/firebase";
+import { useAdmin } from "../hooks/useAdmin";
 import AuthDrawer from "./AuthDrawer";
 
 export default function Navbar() {
+  const { isAdmin } = useAdmin();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -124,6 +126,16 @@ export default function Navbar() {
                 <ShoppingBag size={18} />
                 Shop
               </Link>
+
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  className="flex items-center gap-2 uppercase text-sm font-black text-brand-accent transition-colors hover:text-white"
+                >
+                  <Shield size={18} />
+                  Dashboard
+                </Link>
+              )}
               
               <div className="h-6 w-px bg-white/10 mx-2"></div>
               <a href="#contact" className="btn-primary !py-2 !px-6">Join Now</a>
@@ -190,6 +202,17 @@ export default function Navbar() {
               <ShoppingBag size={20} />
               Shop
             </Link>
+
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                onClick={() => setIsOpen(false)} 
+                className="block px-3 py-4 text-base font-black text-brand-accent hover:bg-white/5 uppercase flex items-center gap-2"
+              >
+                <Shield size={20} />
+                Dashboard
+              </Link>
+            )}
             {!user && (
               <>
                 <button 

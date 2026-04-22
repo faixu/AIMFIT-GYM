@@ -1,15 +1,20 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
-import { Maximize2, X } from "lucide-react";
+import { Maximize2, X, Plus, Trash2 } from "lucide-react";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { useAdmin } from "../hooks/useAdmin";
+import ImageUpload from "./Admin/ImageUpload";
+import { toast } from "sonner";
 
 const categories = ["All", "Transformations", "Training", "Community"];
 
 export default function Gallery() {
+  const { isAdmin } = useAdmin();
   const [filter, setFilter] = useState("All");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [images, setImages] = useState<any[]>([]);
+  const [showUpload, setShowUpload] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
@@ -26,6 +31,17 @@ export default function Gallery() {
     return () => unsubscribe();
   }, []);
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this image?")) return;
+    try {
+      await deleteDoc(doc(db, 'gallery', id));
+      toast.success("Image deleted successfully");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `gallery/${id}`);
+    }
+  };
+
   const filteredImages = filter === "All" 
     ? images 
     : images.filter(img => img.category === filter);
@@ -33,9 +49,20 @@ export default function Gallery() {
   return (
     <section id="gallery" className="py-24 bg-brand-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 relative">
           <h2 className="text-4xl md:text-5xl mb-4">Our <span className="text-brand-accent italic">Gallery</span></h2>
           <p className="text-gray-400 max-w-2xl mx-auto">Witness the hard work, dedication, and transformations of our AimFit family.</p>
+          
+          {isAdmin && (
+            <div className="mt-8 flex justify-center">
+              <button 
+                onClick={() => setShowUpload(true)}
+                className="btn-primary flex items-center gap-2 px-6 py-3"
+              >
+                <Plus size={20} /> Add Image
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Filter Tabs */}
@@ -82,6 +109,15 @@ export default function Gallery() {
                   <Maximize2 className="text-brand-accent mb-2" size={24} />
                   <p className="text-white font-bold uppercase tracking-tighter text-lg">{img.title}</p>
                   <p className="text-brand-accent text-xs font-bold uppercase tracking-widest">{img.category}</p>
+                  
+                  {isAdmin && (
+                    <button 
+                      onClick={(e) => handleDelete(e, img.id)}
+                      className="absolute top-4 right-4 w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -114,6 +150,13 @@ export default function Gallery() {
                 referrerPolicy="no-referrer"
               />
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Upload Modal */}
+        <AnimatePresence>
+          {showUpload && (
+            <ImageUpload onClose={() => setShowUpload(false)} />
           )}
         </AnimatePresence>
       </div>
