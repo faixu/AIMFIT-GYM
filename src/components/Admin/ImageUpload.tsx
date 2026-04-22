@@ -109,7 +109,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onClose }) => {
               <>
                 <Upload size={48} className="text-gray-600 mb-4" />
                 <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Click to Select Image</p>
-                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest">Max 1MB (JPG, PNG)</p>
+                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-widest">Max 10MB (JPG, PNG)</p>
               </>
             )}
             <input 

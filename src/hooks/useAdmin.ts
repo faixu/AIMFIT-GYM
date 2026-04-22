@@ -30,7 +30,7 @@ export function useAdmin() {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           const role = userDoc.data()?.role;
           
-          const isDefaultAdmin = currentUser.email === "faisal.hassan.0996@gmail.com";
+          const isDefaultAdmin = currentUser.email === "faisal.hassan.0996@gmail.com" || currentUser.email === "aadi90866@gmail.com";
           setIsAdmin(role === 'admin' || isDefaultAdmin);
         } else {
           setIsAdmin(false);

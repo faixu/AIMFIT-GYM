@@ -1,5 +1,5 @@
 {
-  "name": "Admin Video Gallery",
-  "description": "A video gallery where an admin can upload and manage short videos.",
+  "name": "AimFit - Premium Fitness & Supplements",
+  "description": "Full-stack fitness platform featuring training galleries, video motivational content, supplement shop, and a powerful admin dashboard.",
   "requestFramePermissions": []
 }

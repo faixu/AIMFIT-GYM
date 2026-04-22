@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, ref, uploadBytesResumable, getDownloadURL, deleteObject } from '../../lib/firebase';
 import { Trash2, Plus, User, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -10,6 +10,8 @@ export default function AdminTrainers() {
   const [trainers, setTrainers] = useState<any[]>([]);
   const [newTrainer, setNewTrainer] = useState({ name: '', specialty: '', bio: '', image: '' });
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,15 +26,14 @@ export default function AdminTrainers() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 1024) { // 1MB limit for Firestore
-        toast.error('Image size must be less than 1MB');
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
         return;
       }
+      setFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setPreview(base64String);
-        setNewTrainer({ ...newTrainer, image: base64String });
+        setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -40,15 +41,35 @@ export default function AdminTrainers() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTrainer.image) {
+    if (!file) {
       toast.error('Please select an image');
       return;
     }
     setLoading(true);
+    setUploadProgress(0);
     try {
-      await addDoc(collection(db, 'trainers'), newTrainer);
+      const storageRef = ref(storage, `trainers/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      const imageUrl = await new Promise<string>((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+          },
+          reject,
+          async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
+        );
+      });
+
+      await addDoc(collection(db, 'trainers'), {
+        ...newTrainer,
+        image: imageUrl
+      });
+
       setNewTrainer({ name: '', specialty: '', bio: '', image: '' });
       setPreview(null);
+      setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       toast.success('Trainer added successfully!');
     } catch (error) {
@@ -61,6 +82,11 @@ export default function AdminTrainers() {
   const handleDelete = async () => {
     if (!deleteModal.id) return;
     try {
+      const trainer = trainers.find(t => t.id === deleteModal.id);
+      if (trainer?.image?.includes('firebasestorage')) {
+        const imageRef = ref(storage, trainer.image);
+        await deleteObject(imageRef).catch(console.error);
+      }
       await deleteDoc(doc(db, 'trainers', deleteModal.id));
       setDeleteModal({ isOpen: false, id: null });
     } catch (error) {
@@ -120,10 +146,10 @@ export default function AdminTrainers() {
             </div>
             <button 
               type="submit" 
-              disabled={loading || !newTrainer.image}
+              disabled={loading || !file}
               className="btn-primary w-full py-5 text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-accent/20"
             >
-              {loading ? 'Adding Trainer...' : 'Add Trainer'}
+              {loading ? `Adding (${Math.round(uploadProgress)}%)...` : 'Add Trainer'}
             </button>
           </div>
 

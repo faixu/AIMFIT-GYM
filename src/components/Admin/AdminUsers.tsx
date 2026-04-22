@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, orderBy, updateDoc, doc, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { db, auth, collection, onSnapshot, query, orderBy, updateDoc, doc, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { User, Shield, ShieldAlert, Search, Mail, Calendar, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,6 +33,10 @@ export default function AdminUsers() {
   }, []);
 
   const toggleRole = async (user: UserProfile) => {
+    if (user.id === auth.currentUser?.uid) {
+      toast.error("You cannot revoke your own admin access.");
+      return;
+    }
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     try {
       await updateDoc(doc(db, 'users', user.id), {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, storage, collection, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, ref, uploadBytes, getDownloadURL, deleteObject } from '../../lib/firebase';
+import { db, storage, collection, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, ref, uploadBytesResumable, getDownloadURL, deleteObject, serverTimestamp } from '../../lib/firebase';
 import { Trash2, Plus, Video, Loader2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,6 +16,7 @@ export default function AdminVideos() {
   const [videos, setVideos] = useState<VideoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   
   // Form state
@@ -45,18 +46,30 @@ export default function AdminVideos() {
     }
 
     setUploading(true);
+    setProgress(0);
     try {
       // 1. Upload Video
       const videoRef = ref(storage, `videos/${Date.now()}_${videoFile.name}`);
-      await uploadBytes(videoRef, videoFile);
-      const videoUrl = await getDownloadURL(videoRef);
+      const videoUploadTask = uploadBytesResumable(videoRef, videoFile);
+
+      const videoUrl = await new Promise<string>((resolve, reject) => {
+        videoUploadTask.on('state_changed', 
+          (snapshot) => {
+            const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setProgress(p);
+          },
+          reject,
+          async () => resolve(await getDownloadURL(videoUploadTask.snapshot.ref))
+        );
+      });
 
       // 2. Upload Thumbnail (optional)
       let thumbnailUrl = '';
       if (thumbnailFile) {
         const thumbRef = ref(storage, `thumbnails/${Date.now()}_${thumbnailFile.name}`);
-        await uploadBytes(thumbRef, thumbnailFile);
-        thumbnailUrl = await getDownloadURL(thumbRef);
+        const thumbUploadTask = uploadBytesResumable(thumbRef, thumbnailFile);
+        await thumbUploadTask;
+        thumbnailUrl = await getDownloadURL(thumbUploadTask.snapshot.ref);
       }
 
       // 3. Save to Firestore
@@ -66,7 +79,7 @@ export default function AdminVideos() {
         description,
         url: videoUrl,
         thumbnailUrl: thumbnailUrl || null,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
 
       toast.success('Video uploaded successfully!');
@@ -87,10 +100,18 @@ export default function AdminVideos() {
       // Delete from Firestore
       await deleteDoc(doc(db, 'videos', video.id));
       
-      // Note: In a real app, you'd also delete from Storage, but we'll skip for simplicity
-      // unless we have the full storage path stored.
+      // Delete from Storage
+      if (video.url.includes('firebasestorage.googleapis.com')) {
+        const videoRef = ref(storage, video.url);
+        await deleteObject(videoRef).catch(console.error);
+      }
+
+      if (video.thumbnailUrl && video.thumbnailUrl.includes('firebasestorage.googleapis.com')) {
+        const thumbRef = ref(storage, video.thumbnailUrl);
+        await deleteObject(thumbRef).catch(console.error);
+      }
       
-      toast.success('Video deleted');
+      toast.success('Video removed');
     } catch (error) {
       toast.error('Failed to delete video');
     }
@@ -246,7 +267,7 @@ export default function AdminVideos() {
                 {uploading ? (
                   <>
                     <Loader2 className="animate-spin" size={20} />
-                    Uploading...
+                    Uploading ({Math.round(progress)}%)
                   </>
                 ) : (
                   <>

@@ -7,22 +7,15 @@ import { useAdmin } from "../hooks/useAdmin";
 import AuthDrawer from "./AuthDrawer";
 
 export default function Navbar() {
-  const { isAdmin } = useAdmin();
+  const { user, isAdmin } = useAdmin();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const clickCount = useRef(0);
   const lastClickTime = useRef(0);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const isHome = location.pathname === "/";
 
@@ -138,7 +131,7 @@ export default function Navbar() {
               )}
               
               <div className="h-6 w-px bg-white/10 mx-2"></div>
-              <a href="#contact" className="btn-primary !py-2 !px-6">Join Now</a>
+              <a href={isHome ? "#contact" : "/#contact"} className="btn-primary !py-2 !px-6">Join Now</a>
             </div>
           </div>
           
@@ -229,7 +222,7 @@ export default function Navbar() {
                 </button>
               </>
             )}
-            <a href="#contact" onClick={() => setIsOpen(false)} className="block px-3 py-4 text-base font-bold text-brand-accent uppercase">Join Now</a>
+            <a href={isHome ? "#contact" : "/#contact"} onClick={() => setIsOpen(false)} className="block px-3 py-4 text-base font-bold text-brand-accent uppercase">Join Now</a>
           </div>
         </motion.div>
       )}
